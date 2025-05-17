@@ -1,0 +1,33 @@
+# Version control
+.git
+.gitignore
+
+# Development containers
+.devcontainer/
+
+# Build output
+output/
+input/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test files
+*_test.go
+*_test.go.tmp
+
+# Documentation
+*.md
+!README.md
+
+# Docker files
+Dockerfile
+.dockerignore
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store 

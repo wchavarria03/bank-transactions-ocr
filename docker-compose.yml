@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # Development service
+  dev:
+    build:
+      context: .
+      target: builder  # Use the builder stage for development
+    volumes:
+      - .:/app
+      - go-mod-cache:/go/pkg/mod  # Cache Go modules
+    environment:
+      - GO111MODULE=on
+      - CGO_ENABLED=0
+    command: sh -c "go run ./cmd"
+    working_dir: /app
+    healthcheck:
+      test: ["CMD", "go", "version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # Production service
+  app:
+    build:
+      context: .
+      args:
+        - VERSION=${VERSION:-dev}
+        - BUILD_TIME=${BUILD_TIME:-unknown}
+    volumes:
+      - ./input:/app/input:ro
+      - ./output:/app/output
+    environment:
+      - TZ=UTC
+    command: ["--help"]  # Default command, can be overridden
+    healthcheck:
+      test: ["CMD", "/app/healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # Test service
+  test:
+    build:
+      context: .
+      target: builder  # Use the builder stage for testing
+    volumes:
+      - .:/app
+      - go-mod-cache:/go/pkg/mod
+    environment:
+      - GO111MODULE=on
+      - CGO_ENABLED=0
+    command: sh -c "go test -v ./..."
+    working_dir: /app
+    healthcheck:
+      test: ["CMD", "go", "version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  go-mod-cache:  # Named volume for Go module cache 

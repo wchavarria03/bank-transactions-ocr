@@ -1,0 +1,48 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/go
+{
+	"name": "Go",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"image": "mcr.microsoft.com/devcontainers/go:1-1.24-bookworm",
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils:2": {
+			"installZsh": true,
+			"username": "vscode",
+			"userUid": "1000",
+			"userGid": "1000"
+		}
+	},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y neovim",
+
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"asvetliakov.vscode-neovim",
+				"golang.go",
+				"sergey-vorobev.golangci-lint"
+			],
+			"settings": {
+				"vscode-neovim.neovimPath": "/usr/bin/nvim",
+				"vscode-neovim.neovimInitVimPaths": [
+					"/home/vscode/.config/nvim/init.lua"
+				]
+			}
+		}
+	},
+
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	"remoteUser": "vscode",
+
+	"mounts": [
+		"source=${localEnv:HOME}/.config/nvim,target=/home/vscode/.config/nvim,type=bind,consistency=cached",
+		"source=${localEnv:HOME}/.local/share/nvim,target=/home/vscode/.local/share/nvim,type=bind,consistency=cached"
+	]
+}
