@@ -1,12 +1,11 @@
-# Transactions Processor
+# Bank Transactions OCR
 
-A command-line tool for extracting and processing transaction data from various document formats (currently supporting PDF) and converting them to structured CSV format.
+A command-line tool for extracting and processing transaction data from bank statements in PDF format.
 
 ## Features
 
-- Extract transaction data from PDF documents
-- Process and structure transaction information
-- Convert extracted data to CSV format
+- Extract transaction data from PDF bank statements
+- Process and structure transaction information into a structured format
 - Support for batch processing multiple documents
 - Configurable input and output directories
 - Verbose mode for detailed operation logging
@@ -22,82 +21,83 @@ A command-line tool for extracting and processing transaction data from various 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/transactions-processor.git
-   cd transactions-processor
+   git clone https://github.com/yourusername/bank-transactions-ocr.git
+   cd bank-transactions-ocr
    ```
 
 2. Build the project:
    ```bash
-   go build -o transactions-processor ./cmd
+   go build -o bank-transactions-ocr
    ```
 
 ## Usage
 
-The tool provides several commands for processing transaction documents:
+The tool provides several commands for processing bank statement documents:
 
 ### Extract Transaction Data
 
-Extract transaction data from documents in the input directory:
+Extract transaction data from PDF bank statements in the input directory:
 
 ```bash
-./transactions-processor extract
-```
+# Basic usage with default directories
+./bank-transactions-ocr extract
 
-### Convert to CSV
+# With verbose output
+./bank-transactions-ocr -v extract
 
-Convert extracted transaction data to CSV format:
+# With custom input and output directories
+./bank-transactions-ocr -i /path/to/pdfs -o /path/to/output extract
 
-```bash
-./transactions-processor tocsv
+# Full example with all options
+./bank-transactions-ocr -v -i /path/to/pdfs -o /path/to/output extract
 ```
 
 ### Process All
 
-Run the complete workflow (extract and convert):
+Run the complete workflow (extract transactions):
 
 ```bash
-./transactions-processor all
+./bank-transactions-ocr all
 ```
 
 ### Global Flags
 
 - `-v, --verbose`: Enable verbose output
 - `-o, --output`: Output directory for processed files (default: "output")
-- `-i, --input-dir`: Directory containing input documents (default: "input")
+- `-i, --input-dir`: Directory containing input PDF documents (default: "pdfs")
 
 Example with custom directories:
 ```bash
-./transactions-processor -i custom-input -o custom-output extract
+./bank-transactions-ocr -i custom-input -o custom-output extract
 ```
 
 ## Project Structure
 
 ```
 .
-├── cmd/                    # Command-line interface
-│   ├── main.go            # Entry point
-│   ├── root.go            # Root command
-│   ├── extract.go         # Extract command
-│   ├── tocsv.go          # ToCSV command
-│   └── all.go            # All-in-one command
-├── internal/              # Private application code
-│   ├── transactionextract/  # Transaction extraction logic
-│   └── transactionwriter/   # CSV writing functionality
-├── input/                 # Default input directory
-├── output/               # Default output directory
+├── .devcontainer/
+├── cmd/
+│   ├── root.go
+│   ├── extract.go
+│   └── all.go
+├── internal/
+│   ├── pdfextract/
+│   ├── transactionsextractor/
+│   └── pdfshellreader/
+├── pdfs/
+├── output/
+├── .dockerignore
+├── .gitignore
+├── .golangci.yml
+├── Dockerfile
+├── docker-compose.yml
 ├── go.mod
 ├── go.sum
+├── main.go
 └── README.md
 ```
 
 ## Development
-
-### Adding New Features
-
-1. Create a new branch for your feature
-2. Make your changes
-3. Add tests if applicable
-4. Submit a pull request
 
 ### Running Tests
 
@@ -105,14 +105,15 @@ Example with custom directories:
 go test ./...
 ```
 
+### Docker Support
+
+The project includes Docker support for containerized execution:
+
+```bash
+# Build and run using Docker Compose
+docker-compose up --build
+```
+
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request 
+This project is licensed under the MIT License - see the LICENSE file for details. 
