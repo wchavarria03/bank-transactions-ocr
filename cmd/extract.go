@@ -68,17 +68,21 @@ var extractCmd = &cobra.Command{
 				fmt.Printf("Detected parser %q for %s\n", p.Name(), baseName)
 			}
 
-			transactions, err := p.Parse(string(text))
+			stmt, err := p.Parse(string(text))
 			if err != nil {
 				return fmt.Errorf("failed to parse %s: %v", baseName, err)
 			}
 
+			if verbose {
+				fmt.Printf("  Account: %s (short: %s)\n", stmt.AccountNumber, stmt.ShortNumber)
+			}
+
 			outputPath := filepath.Join(outputDir, baseName+".transactions")
-			if err := parser.WriteTransactions(outputPath, transactions); err != nil {
+			if err := parser.WriteTransactions(outputPath, stmt.Transactions); err != nil {
 				return fmt.Errorf("failed to write output for %s: %v", baseName, err)
 			}
 
-			fmt.Printf("%s: %d transactions extracted\n", baseName, len(transactions))
+			fmt.Printf("%s: %d transactions extracted\n", baseName, len(stmt.Transactions))
 		}
 
 		return nil

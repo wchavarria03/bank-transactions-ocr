@@ -2,12 +2,16 @@ package bac
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"bank-transactions-ocr/internal/parser"
 )
+
+// ibanPattern matches Costa Rican IBANs: CR + 20 digits (22 chars total).
+var ibanPattern = regexp.MustCompile(`^CR\d{20}$`)
 
 func init() {
 	parser.Register(&totalAccountParser{})
@@ -37,9 +41,10 @@ func (p *totalAccountParser) Detect(text string) bool {
 	return false
 }
 
-func (p *totalAccountParser) Parse(text string) ([]parser.Transaction, error) {
+func (p *totalAccountParser) Parse(text string) (*parser.Statement, error) {
 	lines := strings.Split(text, "\n")
 
+	accountNumber := ""
 	currency := "CRC" // overridden by "Moneda" table header
 	nextIsCurrency := false
 	inTable := false
@@ -49,7 +54,14 @@ func (p *totalAccountParser) Parse(text string) ([]parser.Transaction, error) {
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
 
-		// "Moneda" column header is immediately followed by the currency value (CRC/USD)
+		// Extract account number from IBAN line (CR + 20 digits).
+		// Only capture the first occurrence (page 1 header).
+		if accountNumber == "" && ibanPattern.MatchString(trimmed) {
+			accountNumber = trimmed
+			continue
+		}
+
+		// "Moneda" column header is immediately followed by the currency value (CRC/USD).
 		if trimmed == "Moneda" {
 			nextIsCurrency = true
 			continue
@@ -64,7 +76,7 @@ func (p *totalAccountParser) Parse(text string) ([]parser.Transaction, error) {
 			continue
 		}
 
-		// "Resumen de" marks the end of all transaction data
+		// "Resumen de" marks the end of all transaction data.
 		if strings.HasPrefix(trimmed, "Resumen de") {
 			break
 		}
@@ -96,7 +108,26 @@ func (p *totalAccountParser) Parse(text string) ([]parser.Transaction, error) {
 		return nil, fmt.Errorf("bac/total-account: no transactions found — verify the PDF matches this format")
 	}
 
-	return transactions, nil
+	return &parser.Statement{
+		AccountNumber: accountNumber,
+		ShortNumber:   bacShortNumber(accountNumber),
+		Transactions:  transactions,
+	}, nil
+}
+
+// bacShortNumber extracts the 9-digit short account number BAC uses inside
+// transfer descriptions (e.g. "TEF A : 933175556").
+// BAC IBANs are CR + 20 digits; the short number is digits [10:19].
+// Returns empty string if the full number is not in the expected format.
+func bacShortNumber(iban string) string {
+	if !ibanPattern.MatchString(iban) {
+		return ""
+	}
+	digits := iban[2:] // strip "CR"
+	if len(digits) < 19 {
+		return ""
+	}
+	return digits[10:19]
 }
 
 // parseFields converts the 7 raw text fields into a Transaction.

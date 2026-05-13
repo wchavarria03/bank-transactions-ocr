@@ -7,11 +7,13 @@
 -- of the account (CRC, USD, etc).
 -- ------------------------------------------------------------
 create table accounts (
-    id          uuid primary key default gen_random_uuid(),
-    name        text not null,
-    bank_name   text not null,
-    currency    char(3) not null,
-    created_at  timestamptz default now()
+    id             uuid primary key default gen_random_uuid(),
+    name           text not null,
+    bank_name      text not null,
+    currency       char(3) not null,
+    account_number text unique,  -- full identifier, e.g. CR04010200009331755567
+    short_number   text,         -- bank-specific short form used in transfer descriptions
+    created_at     timestamptz default now()
 );
 
 -- ------------------------------------------------------------

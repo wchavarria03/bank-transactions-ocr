@@ -5,7 +5,7 @@ import "time"
 // Transaction represents a single parsed bank transaction.
 type Transaction struct {
 	Date        time.Time
-	Reference   string  // bank reference number — used for dedup and transfer matching
+	Reference   string  // bank reference number — primary dedup key and transfer matching signal
 	Code        string  // transaction type code (e.g. TF, CP, TS, MD)
 	Description string
 	Amount      float64 // negative = debit, positive = credit
@@ -13,12 +13,30 @@ type Transaction struct {
 	Currency    string
 }
 
+// Statement is the result of parsing a single PDF — one account's transactions
+// plus the account identifiers extracted from the statement header.
+//
+// AccountNumber is the full identifier (e.g. IBAN "CR04010200009331755567").
+// ShortNumber is the bank-specific shorter form that appears inside transfer
+// descriptions (e.g. "TEF A : 701979726" or "TEF DE: 933175556"). Each bank
+// parser implements its own extraction rule for ShortNumber.
+//
+// Transfer matching priority:
+//   1. Same Reference across accounts (strongest signal)
+//   2. Description contains counterpart's ShortNumber (TEF A/DE patterns)
+//   3. Same date + same absolute amount across accounts (weakest, needs confirmation)
+type Statement struct {
+	AccountNumber string // full account identifier; empty if not found in PDF
+	ShortNumber   string // bank-specific short form used in transfer descriptions
+	Transactions  []Transaction
+}
+
 // BankParser is implemented by each bank/format-specific parser.
 type BankParser interface {
-	// Name returns a human-readable identifier, e.g. "bac/statement".
+	// Name returns a human-readable identifier, e.g. "bac/total-account".
 	Name() string
 	// Detect returns true if the extracted PDF text matches this parser's format.
 	Detect(text string) bool
-	// Parse extracts transactions from the full text of a PDF.
-	Parse(text string) ([]Transaction, error)
+	// Parse extracts the account number and transactions from the full text of a PDF.
+	Parse(text string) (*Statement, error)
 }
