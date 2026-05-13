@@ -2,6 +2,7 @@ package bac
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -39,12 +40,25 @@ func (p *totalAccountParser) Detect(text string) bool {
 func (p *totalAccountParser) Parse(text string) ([]parser.Transaction, error) {
 	lines := strings.Split(text, "\n")
 
+	currency := "CRC" // overridden by "Moneda" table header
+	nextIsCurrency := false
 	inTable := false
 	fields := make([]string, 0, 7)
 	var transactions []parser.Transaction
 
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
+
+		// "Moneda" column header is immediately followed by the currency value (CRC/USD)
+		if trimmed == "Moneda" {
+			nextIsCurrency = true
+			continue
+		}
+		if nextIsCurrency {
+			currency = trimmed
+			nextIsCurrency = false
+			continue
+		}
 
 		if trimmed == "" {
 			continue
@@ -70,7 +84,7 @@ func (p *totalAccountParser) Parse(text string) ([]parser.Transaction, error) {
 		fields = append(fields, trimmed)
 
 		if len(fields) == 7 {
-			tx, err := parseFields(fields)
+			tx, err := parseFields(fields, currency)
 			if err == nil {
 				transactions = append(transactions, tx)
 			}
@@ -87,10 +101,14 @@ func (p *totalAccountParser) Parse(text string) ([]parser.Transaction, error) {
 
 // parseFields converts the 7 raw text fields into a Transaction.
 // BAC statement column order: Fecha | Referencia | Código | Descripción | Débito | Crédito | Balance
-func parseFields(fields []string) (parser.Transaction, error) {
+func parseFields(fields []string, currency string) (parser.Transaction, error) {
 	date, err := parseDate(fields[0])
 	if err != nil {
 		return parser.Transaction{}, fmt.Errorf("invalid date %q: %w", fields[0], err)
+	}
+
+	if !isNumeric(fields[4]) || !isNumeric(fields[5]) {
+		return parser.Transaction{}, fmt.Errorf("non-numeric amounts: debit=%q credit=%q", fields[4], fields[5])
 	}
 
 	debit := parseAmount(fields[4])
@@ -107,7 +125,7 @@ func parseFields(fields []string) (parser.Transaction, error) {
 		Description: fields[3],
 		Amount:      amount,
 		Balance:     parseAmount(fields[6]),
-		Currency:    "CRC",
+		Currency:    currency,
 	}, nil
 }
 
@@ -127,4 +145,10 @@ func parseAmount(s string) float64 {
 	var f float64
 	fmt.Sscanf(s, "%f", &f)
 	return f
+}
+
+func isNumeric(s string) bool {
+	cleaned := strings.ReplaceAll(s, ",", "")
+	_, err := strconv.ParseFloat(cleaned, 64)
+	return err == nil
 }
