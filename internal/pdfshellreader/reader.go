@@ -45,8 +45,8 @@ func NewReader(pdfPath string) (*Reader, error) {
 }
 
 // GetNumPages returns the number of pages in the PDF
-func (r *Reader) GetNumPages() (int, error) {
-	return r.reader.NumPage(), nil
+func (r *Reader) GetNumPages() int {
+	return r.reader.NumPage()
 }
 
 // ExtractTextFromPage extracts text from a specific page

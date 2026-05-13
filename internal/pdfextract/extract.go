@@ -65,12 +65,6 @@ func ExtractText(inputPath, outputPath string, verbose bool) error {
 	}
 	defer reader.Close()
 
-	// Get number of pages
-	numPages, err := reader.GetNumPages()
-	if err != nil {
-		return fmt.Errorf("failed to get number of pages: %v", err)
-	}
-
 	// Create output file
 	outFile, err := os.Create(outputPath)
 	if err != nil {
@@ -79,7 +73,7 @@ func ExtractText(inputPath, outputPath string, verbose bool) error {
 	defer outFile.Close()
 
 	// Extract text from each page
-	for i := 1; i <= numPages; i++ {
+	for i := 1; i <= reader.GetNumPages(); i++ {
 		text, err := reader.ExtractTextFromPage(i)
 		if err != nil {
 			return fmt.Errorf("failed to extract text from page %d: %v", i, err)

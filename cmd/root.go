@@ -96,13 +96,5 @@ func init() {
 	// Global flags
 	rootCmd.PersistentFlags().BoolVarP(&config.Verbose, "verbose", "v", false, "Enable verbose output")
 	rootCmd.PersistentFlags().StringVarP(&config.OutputDir, "output", "o", "output", "Output directory for processed files")
-	rootCmd.PersistentFlags().StringVarP(&config.InputDir, "input-dir", "i", "input", "Directory containing input documents")
-
-	// Set default values
-	rootCmd.PersistentFlags().Lookup("output").DefValue = "output"
-	rootCmd.PersistentFlags().Lookup("input-dir").DefValue = "input"
-
-	// Mark flags as required
-	rootCmd.MarkPersistentFlagRequired("input-dir")
-	rootCmd.MarkPersistentFlagRequired("output")
+	rootCmd.PersistentFlags().StringVarP(&config.InputDir, "input-dir", "i", "pdfs", "Directory containing input PDF documents")
 }

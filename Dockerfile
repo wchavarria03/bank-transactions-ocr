@@ -26,7 +26,7 @@ ARG VERSION=dev
 ARG BUILD_TIME=unknown
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -ldflags="-w -s -X main.version=${VERSION} -X main.buildTime=${BUILD_TIME}" \
-    -o transactions-processor ./cmd
+    -o transactions-processor .
 
 # Final stage
 FROM alpine:3.19
