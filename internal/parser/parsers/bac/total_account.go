@@ -122,6 +122,8 @@ func parseFields(fields []string, currency string) (parser.Transaction, error) {
 
 	return parser.Transaction{
 		Date:        date,
+		Reference:   fields[1],
+		Code:        fields[2],
 		Description: fields[3],
 		Amount:      amount,
 		Balance:     parseAmount(fields[6]),

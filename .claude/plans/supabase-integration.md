@@ -26,67 +26,34 @@ Lovable UI (graphs, categories, edits)
 
 ## Schema (Supabase)
 
-```sql
-create table accounts (
-    id          uuid primary key default gen_random_uuid(),
-    name        text not null,
-    bank_name   text not null,
-    currency    char(3) not null default 'USD',
-    created_at  timestamptz default now()
-);
+See `docs/schema.sql` for the full SQL. Summary:
 
-create table categories (
-    id          uuid primary key default gen_random_uuid(),
-    name        text not null unique,
-    color       text not null default '#6366f1',
-    created_at  timestamptz default now()
-);
+- **accounts** — one row per bank account, with currency
+- **categories** — expense categories managed from the UI
+- **transfers** — links two transaction IDs for same-money movements across accounts;
+  stores the exchange rate (calculated from amounts, manual, or BCCR official)
+- **transactions** — one row per transaction; includes `reference` (bank ref number used
+  for dedup and transfer matching), `code` (TF/CP/TS/MD etc), `transfer_id` (nullable,
+  set when transaction is one side of a transfer)
 
-create table transactions (
-    id          uuid primary key default gen_random_uuid(),
-    account_id  uuid not null references accounts(id),
-    date        date not null,
-    description text not null,
-    amount      numeric(12,2) not null,
-    balance     numeric(12,2),
-    currency    char(3) not null,
-    category_id uuid references categories(id),
-    source_file text,
-    status      text not null default 'pending'
-                    check (status in ('pending', 'confirmed')),
-    notes       text,
-    created_at  timestamptz default now(),
-    unique(account_id, date, description, amount)
-);
-```
+Key design decisions:
+- Dedup key is `(account_id, date, reference, amount)` — more reliable than description
+- Transfer exchange rate is calculated automatically from the two amounts when currencies differ
+- `transfer_id IS NULL` in WHERE clause excludes transfers from expense graphs
+- BCCR rate can be stored alongside BAC's implied rate to track bank spread cost
 
 ---
 
 ## Phase 1 — Parser abstraction (do first, verify it works)
 
-### Step 1 — Parser interface
-- Create `internal/parser/parser.go`:
-  - `Transaction` struct (Date, Description, Amount, Balance, Currency)
-  - `BankParser` interface with `Name()`, `Detect(text string) bool`, `Parse(text string) ([]Transaction, error)`
+### Step 1 — Parser interface ✓
+- `Transaction` struct: Date, Reference, Code, Description, Amount, Balance, Currency
+- `BankParser` interface: `Name()`, `Detect()`, `Parse()`
 
-### Step 2 — Registry
-- Create `internal/parser/registry.go`
-- Global registry, parsers self-register via `init()`
-- `Detect(text)` — tries all parsers, returns first match
-- `List()` — returns all registered parser names (used in error messages)
-
-### Step 3 — BAC parser
-- Create `internal/parser/parsers/bac/statement.go`
-- Move current logic from `transactionsextractor` here
-- `Detect()` — identify BAC-specific markers in the text
-- `Parse()` — existing 7-field logic
-
-### Step 4 — Update `extract` command
-- Replace `transactionsextractor` with new parser registry
-- Keep writing output to `.transactions` files for now (DB comes in Phase 2)
-- If no parser matches: print error listing supported formats
-
-### Step 5 — Delete `internal/transactionsextractor/`
+### Step 2 — Registry ✓
+### Step 3 — BAC total-account parser ✓ (captures Reference, Code, Description, currency auto-detected)
+### Step 4 — Update `extract` command ✓
+### Step 5 — Delete `internal/transactionsextractor/` ✓
 
 ---
 
