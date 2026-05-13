@@ -9,16 +9,16 @@ import (
 )
 
 func init() {
-	parser.Register(&statementParser{})
+	parser.Register(&totalAccountParser{})
 }
 
-type statementParser struct{}
+type totalAccountParser struct{}
 
-func (p *statementParser) Name() string { return "bac/statement" }
+func (p *totalAccountParser) Name() string { return "bac/total-account" }
 
 // Detect identifies BAC statements by the presence of "Balance" as a standalone
 // line combined with "Resumen de", which are markers unique to this format.
-func (p *statementParser) Detect(text string) bool {
+func (p *totalAccountParser) Detect(text string) bool {
 	hasBalance := false
 	hasResumen := false
 	for _, line := range strings.Split(text, "\n") {
@@ -36,7 +36,7 @@ func (p *statementParser) Detect(text string) bool {
 	return false
 }
 
-func (p *statementParser) Parse(text string) ([]parser.Transaction, error) {
+func (p *totalAccountParser) Parse(text string) ([]parser.Transaction, error) {
 	lines := strings.Split(text, "\n")
 
 	inTable := false
@@ -79,7 +79,7 @@ func (p *statementParser) Parse(text string) ([]parser.Transaction, error) {
 	}
 
 	if len(transactions) == 0 {
-		return nil, fmt.Errorf("bac/statement: no transactions found — verify the PDF matches this format")
+		return nil, fmt.Errorf("bac/total-account: no transactions found — verify the PDF matches this format")
 	}
 
 	return transactions, nil
