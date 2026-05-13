@@ -1,0 +1,63 @@
+Transacciones del mes
+
+JOHN DOE
+Cuenta: CR00000000000000000000
+Moneda: CRC
+Fecha de generación: 01/04/2025 00:00:00
+
+Balance de la cuenta
+Fecha desde:01/03/2025 Fecha hasta:31/03/2025
+
+Moneda Saldo en libros* Retenidos y diferidos Saldo disponible
+CRC 100000.00 0.00 100000.00
+
+Fecha
+Referencia
+Codigó
+Descripción
+Debito
+Créditos
+Balance
+01/03/2025
+111111111
+TF
+Movimiento Pago Casa e
+0.00
+500000.00
+600000.00
+04/03/2025
+222222222
+CP
+PARQUEO MALL SAN P
+1800.00
+0.00
+598200.00
+05/03/2025
+333333333
+TS
+SINPE MOVIL Limpieza_
+32000.00
+0.00
+566200.00
+10/03/2025
+444444444
+TF
+TEF A : 000000000
+50000.00
+0.00
+516200.00
+15/03/2025
+555555555
+MD
+DEBITO COMPASS
+450.00
+0.00
+515750.00
+
+Resumen de estado de cuenta
+
+Código Movimiento Débitos Créditos
+TF Transferencia de Fondos 1 50000.00 1 500000.00
+CP Compras en Comercios 1 1800.00 0 0.00
+TS Transferencias por SINPE 1 32000.00 0 0.00
+MD Débito Misceláneo 1 450.00 0 0.00

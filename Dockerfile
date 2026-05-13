@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.24-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
 # Add metadata labels
 LABEL maintainer="Walter Chavarria <wchavarria03@gmail.com>"
@@ -29,7 +29,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -o transactions-processor .
 
 # Final stage
-FROM alpine:3.19
+FROM alpine:3.21
 
 # Add metadata labels
 LABEL maintainer="Walter Chavarria <wchavarria03@gmail.com>"
