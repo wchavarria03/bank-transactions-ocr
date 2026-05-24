@@ -10,14 +10,13 @@ import (
 	"bank-transactions-ocr/app/internal/parser"
 	_ "bank-transactions-ocr/app/internal/parser/parsers/bac"
 	"bank-transactions-ocr/app/internal/pdf"
-	"bank-transactions-ocr/app/internal/services"
 )
 
 type ExtractHandler struct {
-	importer *services.ImportService
+	importer Importer
 }
 
-func NewExtractHandler(importer *services.ImportService) *ExtractHandler {
+func NewExtractHandler(importer Importer) *ExtractHandler {
 	return &ExtractHandler{importer: importer}
 }
 

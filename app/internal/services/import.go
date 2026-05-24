@@ -5,18 +5,17 @@ import (
 	"fmt"
 
 	"bank-transactions-ocr/app/internal/models"
-	"bank-transactions-ocr/app/internal/repositories"
 )
 
 type ImportService struct {
-	accounts     repositories.AccountRepository
-	transactions repositories.TransactionRepository
+	accounts     AccountRepository
+	transactions TransactionRepository
 	classifier   *ClassificationService
 }
 
 func NewImportService(
-	accounts repositories.AccountRepository,
-	transactions repositories.TransactionRepository,
+	accounts AccountRepository,
+	transactions TransactionRepository,
 	classifier *ClassificationService,
 ) *ImportService {
 	return &ImportService{

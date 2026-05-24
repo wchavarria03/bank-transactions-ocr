@@ -5,14 +5,13 @@ import (
 	"strings"
 
 	"bank-transactions-ocr/app/internal/models"
-	"bank-transactions-ocr/app/internal/repositories"
 )
 
 type ClassificationService struct {
-	rules repositories.ClassificationRuleRepository
+	rules ClassificationRuleRepository
 }
 
-func NewClassificationService(rules repositories.ClassificationRuleRepository) *ClassificationService {
+func NewClassificationService(rules ClassificationRuleRepository) *ClassificationService {
 	return &ClassificationService{rules: rules}
 }
 
