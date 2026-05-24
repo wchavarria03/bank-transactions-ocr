@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"bank-transactions-ocr/internal/parser"
+	"bank-transactions-ocr/app/internal/models"
+	"bank-transactions-ocr/app/internal/parser"
 )
 
-// ibanPattern matches Costa Rican IBANs: CR + 20 digits (22 chars total).
 var ibanPattern = regexp.MustCompile(`^CR\d{20}$`)
 
 func init() {
@@ -41,15 +41,15 @@ func (p *totalAccountParser) Detect(text string) bool {
 	return false
 }
 
-func (p *totalAccountParser) Parse(text string) (*parser.Statement, error) {
+func (p *totalAccountParser) Parse(text string) (*models.Statement, error) {
 	lines := strings.Split(text, "\n")
 
 	accountNumber := ""
-	currency := "CRC" // overridden by "Moneda" table header
+	currency := "CRC"
 	nextIsCurrency := false
 	inTable := false
 	fields := make([]string, 0, 7)
-	var transactions []parser.Transaction
+	var transactions []models.Transaction
 
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
@@ -108,7 +108,7 @@ func (p *totalAccountParser) Parse(text string) (*parser.Statement, error) {
 		return nil, fmt.Errorf("bac/total-account: no transactions found — verify the PDF matches this format")
 	}
 
-	return &parser.Statement{
+	return &models.Statement{
 		AccountNumber: accountNumber,
 		ShortNumber:   bacShortNumber(accountNumber),
 		Transactions:  transactions,
@@ -118,12 +118,11 @@ func (p *totalAccountParser) Parse(text string) (*parser.Statement, error) {
 // bacShortNumber extracts the 9-digit short account number BAC uses inside
 // transfer descriptions (e.g. "TEF A : 933175556").
 // BAC IBANs are CR + 20 digits; the short number is digits [10:19].
-// Returns empty string if the full number is not in the expected format.
 func bacShortNumber(iban string) string {
 	if !ibanPattern.MatchString(iban) {
 		return ""
 	}
-	digits := iban[2:] // strip "CR"
+	digits := iban[2:]
 	if len(digits) < 19 {
 		return ""
 	}
@@ -132,26 +131,25 @@ func bacShortNumber(iban string) string {
 
 // parseFields converts the 7 raw text fields into a Transaction.
 // BAC statement column order: Fecha | Referencia | Código | Descripción | Débito | Crédito | Balance
-func parseFields(fields []string, currency string) (parser.Transaction, error) {
+func parseFields(fields []string, currency string) (models.Transaction, error) {
 	date, err := parseDate(fields[0])
 	if err != nil {
-		return parser.Transaction{}, fmt.Errorf("invalid date %q: %w", fields[0], err)
+		return models.Transaction{}, fmt.Errorf("invalid date %q: %w", fields[0], err)
 	}
 
 	if !isNumeric(fields[4]) || !isNumeric(fields[5]) {
-		return parser.Transaction{}, fmt.Errorf("non-numeric amounts: debit=%q credit=%q", fields[4], fields[5])
+		return models.Transaction{}, fmt.Errorf("non-numeric amounts: debit=%q credit=%q", fields[4], fields[5])
 	}
 
 	debit := parseAmount(fields[4])
 	credit := parseAmount(fields[5])
 
-	// Represent debits as negative, credits as positive
 	amount := credit
 	if debit > 0 {
 		amount = -debit
 	}
 
-	return parser.Transaction{
+	return models.Transaction{
 		Date:        date,
 		Reference:   fields[1],
 		Code:        fields[2],
@@ -163,34 +161,25 @@ func parseFields(fields []string, currency string) (parser.Transaction, error) {
 	}, nil
 }
 
-// deriveType infers a normalized TransactionType from the bank code, description,
-// and amount sign. The result is a best-guess that the user can correct in the UI.
-func deriveType(code, description string, amount float64) parser.TransactionType {
+func deriveType(code, description string, amount float64) models.TransactionType {
 	desc := strings.ToUpper(description)
 
-	// Fees and commissions
 	if strings.Contains(desc, "COMISION") || strings.Contains(desc, "COBRO ADMINISTR") {
-		return parser.TypeFee
+		return models.TypeFee
 	}
-
-	// Interest charged or earned
 	if strings.Contains(desc, "INTERES") {
-		return parser.TypeInterest
+		return models.TypeInterest
 	}
-
-	// Transfers between own accounts
 	if code == "TF" {
 		if amount < 0 {
-			return parser.TypeTransferOut
+			return models.TypeTransferOut
 		}
-		return parser.TypeTransferIn
+		return models.TypeTransferIn
 	}
-
-	// Everything else: sign determines expense vs income
 	if amount < 0 {
-		return parser.TypeExpense
+		return models.TypeExpense
 	}
-	return parser.TypeIncome
+	return models.TypeIncome
 }
 
 func parseDate(s string) (time.Time, error) {

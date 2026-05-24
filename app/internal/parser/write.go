@@ -4,10 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+
+	"bank-transactions-ocr/app/internal/models"
 )
 
-// WriteTransactions writes transactions to a file, one per line.
-func WriteTransactions(path string, transactions []Transaction) error {
+func WriteTransactions(path string, transactions []models.Transaction) error {
 	f, err := os.Create(path)
 	if err != nil {
 		return err

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bank-transactions-ocr/cmd"
+	"bank-transactions-ocr/app/cmd"
 )
 
 func main() {

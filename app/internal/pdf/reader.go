@@ -1,4 +1,4 @@
-package pdfshellreader
+package pdf
 
 import (
 	"fmt"
@@ -7,14 +7,12 @@ import (
 	"github.com/ledongthuc/pdf"
 )
 
-// Reader handles PDF file operations
 type Reader struct {
 	pdfPath string
 	reader  *pdf.Reader
 	file    *os.File
 }
 
-// NewReader creates a new PDF reader instance
 func NewReader(pdfPath string) (*Reader, error) {
 	if _, err := os.Stat(pdfPath); os.IsNotExist(err) {
 		return nil, fmt.Errorf("PDF file does not exist: %v", err)
@@ -44,12 +42,10 @@ func NewReader(pdfPath string) (*Reader, error) {
 	}, nil
 }
 
-// GetNumPages returns the number of pages in the PDF
 func (r *Reader) GetNumPages() int {
 	return r.reader.NumPage()
 }
 
-// ExtractTextFromPage extracts text from a specific page
 func (r *Reader) ExtractTextFromPage(pageNum int) (string, error) {
 	if pageNum < 1 || pageNum > r.reader.NumPage() {
 		return "", fmt.Errorf("invalid page number: %d", pageNum)
@@ -68,7 +64,6 @@ func (r *Reader) ExtractTextFromPage(pageNum int) (string, error) {
 	return text, nil
 }
 
-// Close closes the PDF reader
 func (r *Reader) Close() error {
 	if r.file != nil {
 		return r.file.Close()
