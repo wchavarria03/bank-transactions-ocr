@@ -7,10 +7,6 @@ import (
 	"bank-transactions-ocr/app/internal/models"
 )
 
-type ClassificationService struct {
-	rules ClassificationRuleRepository
-}
-
 func NewClassificationService(rules ClassificationRuleRepository) *ClassificationService {
 	return &ClassificationService{rules: rules}
 }

@@ -9,8 +9,6 @@ import (
 	"bank-transactions-ocr/app/internal/pdf"
 )
 
-type DumpHandler struct{}
-
 func NewDumpHandler() *DumpHandler { return &DumpHandler{} }
 
 func (h *DumpHandler) Handle(inputDir, outputDir string, verbose bool) error {

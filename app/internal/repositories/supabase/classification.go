@@ -7,10 +7,6 @@ import (
 	"bank-transactions-ocr/app/internal/models"
 )
 
-type ClassificationRepository struct {
-	client *databases.SupabaseClient
-}
-
 func NewClassificationRepository(client *databases.SupabaseClient) *ClassificationRepository {
 	return &ClassificationRepository{client: client}
 }

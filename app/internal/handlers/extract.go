@@ -12,10 +12,6 @@ import (
 	"bank-transactions-ocr/app/internal/pdf"
 )
 
-type ExtractHandler struct {
-	importer Importer
-}
-
 func NewExtractHandler(importer Importer) *ExtractHandler {
 	return &ExtractHandler{importer: importer}
 }

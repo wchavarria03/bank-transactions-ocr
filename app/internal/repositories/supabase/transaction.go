@@ -7,10 +7,6 @@ import (
 	"bank-transactions-ocr/app/internal/models"
 )
 
-type TransactionRepository struct {
-	client *databases.SupabaseClient
-}
-
 func NewTransactionRepository(client *databases.SupabaseClient) *TransactionRepository {
 	return &TransactionRepository{client: client}
 }

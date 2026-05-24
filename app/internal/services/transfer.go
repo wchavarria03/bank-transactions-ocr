@@ -7,8 +7,6 @@ import (
 	"bank-transactions-ocr/app/internal/models"
 )
 
-type TransferService struct{}
-
 func NewTransferService() *TransferService { return &TransferService{} }
 
 // Match identifies transfer pairs across statements using a 3-tier priority:

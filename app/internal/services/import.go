@@ -7,12 +7,6 @@ import (
 	"bank-transactions-ocr/app/internal/models"
 )
 
-type ImportService struct {
-	accounts     AccountRepository
-	transactions TransactionRepository
-	classifier   *ClassificationService
-}
-
 func NewImportService(
 	accounts AccountRepository,
 	transactions TransactionRepository,
