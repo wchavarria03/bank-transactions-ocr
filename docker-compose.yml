@@ -1,65 +1,39 @@
-version: '3.8'
-
 services:
-  # Development service
-  dev:
-    build:
-      context: .
-      target: builder  # Use the builder stage for development
-    volumes:
-      - .:/app
-      - go-mod-cache:/go/pkg/mod  # Cache Go modules
+  # Local PostgreSQL — mirrors the Supabase schema for development.
+  # Migrations in app/internal/db/migrations/ are applied automatically
+  # on first `docker compose up` via docker-entrypoint-initdb.d.
+  db:
+    image: postgres:16-alpine
     environment:
-      - GO111MODULE=on
-      - CGO_ENABLED=0
-    command: sh -c "go run ./cmd"
-    working_dir: /app
+      POSTGRES_DB: bank_transactions
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./app/internal/db/migrations:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD", "go", "version"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  # Production service
-  app:
-    build:
-      context: .
-      args:
-        - VERSION=${VERSION:-dev}
-        - BUILD_TIME=${BUILD_TIME:-unknown}
-    volumes:
-      - ./input:/app/input:ro
-      - ./output:/app/output
+  # PostgREST — exposes the local DB as a REST API on port 3000,
+  # matching the Supabase PostgREST interface used by the app.
+  # Set SUPABASE_URL=http://localhost:3000 and SUPABASE_KEY=local-dev
+  # in your .env to point the CLI at this local instance.
+  rest:
+    image: postgrest/postgrest:v12.2.3
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
-      - TZ=UTC
-    command: ["--help"]  # Default command, can be overridden
-    healthcheck:
-      test: ["CMD", "/app/transactions-processor", "--help"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
-
-  # Test service
-  test:
-    build:
-      context: .
-      target: builder  # Use the builder stage for testing
-    volumes:
-      - .:/app
-      - go-mod-cache:/go/pkg/mod
-    environment:
-      - GO111MODULE=on
-      - CGO_ENABLED=0
-    command: sh -c "go test -v ./..."
-    working_dir: /app
-    healthcheck:
-      test: ["CMD", "go", "version"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
+      PGRST_DB_URI: postgres://postgres:postgres@db:5432/bank_transactions
+      PGRST_DB_SCHEMA: public
+      PGRST_DB_ANON_ROLE: postgres
+    ports:
+      - "3000:3000"
 
 volumes:
-  go-mod-cache:  # Named volume for Go module cache 
+  postgres_data:

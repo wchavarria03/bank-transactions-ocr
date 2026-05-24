@@ -22,7 +22,7 @@ data/output/*
 !data/input/.gitkeep
 !data/output/.gitkeep
 
-# Environment variables
+# Environment variables (.envrc is committed; .env is not)
 .env
 
 # Built binary
