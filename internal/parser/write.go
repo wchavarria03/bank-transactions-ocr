@@ -16,10 +16,11 @@ func WriteTransactions(path string, transactions []Transaction) error {
 
 	w := bufio.NewWriter(f)
 	for _, tx := range transactions {
-		line := fmt.Sprintf("%s--%s--%s--%s--%.2f--%.2f--%s\n",
+		line := fmt.Sprintf("%s--%s--%s--%s--%s--%.2f--%.2f--%s\n",
 			tx.Date.Format("2006-01-02"),
 			tx.Reference,
 			tx.Code,
+			string(tx.Type),
 			tx.Description,
 			tx.Amount,
 			tx.Balance,

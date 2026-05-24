@@ -2,11 +2,24 @@ package parser
 
 import "time"
 
+// TransactionType classifies a transaction independent of bank-specific codes.
+type TransactionType string
+
+const (
+	TypeExpense     TransactionType = "expense"
+	TypeIncome      TransactionType = "income"
+	TypeTransferOut TransactionType = "transfer_out"
+	TypeTransferIn  TransactionType = "transfer_in"
+	TypeFee         TransactionType = "fee"
+	TypeInterest    TransactionType = "interest"
+)
+
 // Transaction represents a single parsed bank transaction.
 type Transaction struct {
 	Date        time.Time
-	Reference   string  // bank reference number — primary dedup key and transfer matching signal
-	Code        string  // transaction type code (e.g. TF, CP, TS, MD)
+	Reference   string          // bank reference number — primary dedup key and transfer matching signal
+	Code        string          // bank-specific type code (e.g. TF, CP, TS, MD)
+	Type        TransactionType // normalized type, derived by the parser
 	Description string
 	Amount      float64 // negative = debit, positive = credit
 	Balance     float64

@@ -155,11 +155,42 @@ func parseFields(fields []string, currency string) (parser.Transaction, error) {
 		Date:        date,
 		Reference:   fields[1],
 		Code:        fields[2],
+		Type:        deriveType(fields[2], fields[3], amount),
 		Description: fields[3],
 		Amount:      amount,
 		Balance:     parseAmount(fields[6]),
 		Currency:    currency,
 	}, nil
+}
+
+// deriveType infers a normalized TransactionType from the bank code, description,
+// and amount sign. The result is a best-guess that the user can correct in the UI.
+func deriveType(code, description string, amount float64) parser.TransactionType {
+	desc := strings.ToUpper(description)
+
+	// Fees and commissions
+	if strings.Contains(desc, "COMISION") || strings.Contains(desc, "COBRO ADMINISTR") {
+		return parser.TypeFee
+	}
+
+	// Interest charged or earned
+	if strings.Contains(desc, "INTERES") {
+		return parser.TypeInterest
+	}
+
+	// Transfers between own accounts
+	if code == "TF" {
+		if amount < 0 {
+			return parser.TypeTransferOut
+		}
+		return parser.TypeTransferIn
+	}
+
+	// Everything else: sign determines expense vs income
+	if amount < 0 {
+		return parser.TypeExpense
+	}
+	return parser.TypeIncome
 }
 
 func parseDate(s string) (time.Time, error) {
