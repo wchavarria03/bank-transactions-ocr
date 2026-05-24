@@ -1,6 +1,6 @@
 BINARY   := bank-transactions-ocr
-INPUT    := pdfs
-OUTPUT   := output
+INPUT    := data/input
+OUTPUT   := data/output
 
 .DEFAULT_GOAL := help
 

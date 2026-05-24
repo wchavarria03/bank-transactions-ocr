@@ -49,8 +49,8 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&cfg.Verbose, "verbose", "v", false, "Enable verbose output")
-	rootCmd.PersistentFlags().StringVarP(&cfg.OutputDir, "output", "o", "output", "Output directory")
-	rootCmd.PersistentFlags().StringVarP(&cfg.InputDir, "input-dir", "i", "pdfs", "Input PDF directory")
+	rootCmd.PersistentFlags().StringVarP(&cfg.OutputDir, "output", "o", "data/output", "Output directory")
+	rootCmd.PersistentFlags().StringVarP(&cfg.InputDir, "input-dir", "i", "data/input", "Input PDF directory")
 	rootCmd.PersistentFlags().BoolVar(&cfg.DryRun, "dry-run", false, "Write to files instead of Supabase")
 	rootCmd.PersistentFlags().StringVar(&cfg.SupabaseURL, "supabase-url", os.Getenv("SUPABASE_URL"), "Supabase project URL")
 	rootCmd.PersistentFlags().StringVar(&cfg.SupabaseKey, "supabase-key", os.Getenv("SUPABASE_KEY"), "Supabase API key")

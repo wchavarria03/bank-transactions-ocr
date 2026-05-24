@@ -16,6 +16,14 @@ vendor/
 # Go workspace file
 go.work
 
-output
-pdfs
+# Runtime data (PDFs and extracted output are private/local)
+data/input/*
+data/output/*
+!data/input/.gitkeep
+!data/output/.gitkeep
+
+# Environment variables
+.env
+
+# Built binary
 bank-transactions-ocr
