@@ -6,7 +6,7 @@ var dumpCmd = &cobra.Command{
 	Use:   "dump",
 	Short: "Dump raw extracted text from PDFs (for debugging parsers)",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return app.DumpHandler.Handle(cfg.InputDir, cfg.OutputDir, cfg.Verbose)
+		return deps.Handlers.Dump.Handle(cfg.InputDir, cfg.OutputDir, cfg.Verbose)
 	},
 }
 

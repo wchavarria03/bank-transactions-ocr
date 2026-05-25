@@ -15,11 +15,12 @@ type cliConfig struct {
 	DryRun      bool
 	SupabaseURL string
 	SupabaseKey string
+	ServerAddr  string
 }
 
 var (
-	cfg = &cliConfig{}
-	app *core.App
+	cfg  = &cliConfig{}
+	deps *core.Dependencies
 )
 
 var rootCmd = &cobra.Command{
@@ -32,10 +33,16 @@ var rootCmd = &cobra.Command{
 		if err := os.MkdirAll(cfg.OutputDir, 0750); err != nil {
 			return fmt.Errorf("failed to create output directory: %w", err)
 		}
-		app = core.NewApp(core.Config{
+
+		var err error
+		deps, err = core.NewDependencies(core.Config{
 			SupabaseURL: cfg.SupabaseURL,
 			SupabaseKey: cfg.SupabaseKey,
+			ServerAddr:  cfg.ServerAddr,
 		})
+		if err != nil {
+			return fmt.Errorf("initialising dependencies: %w", err)
+		}
 		return nil
 	},
 }
@@ -54,4 +61,5 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&cfg.DryRun, "dry-run", false, "Write to files instead of Supabase")
 	rootCmd.PersistentFlags().StringVar(&cfg.SupabaseURL, "supabase-url", os.Getenv("SUPABASE_URL"), "Supabase project URL")
 	rootCmd.PersistentFlags().StringVar(&cfg.SupabaseKey, "supabase-key", os.Getenv("SUPABASE_KEY"), "Supabase API key")
+	rootCmd.PersistentFlags().StringVar(&cfg.ServerAddr, "addr", ":8080", "HTTP server listen address")
 }

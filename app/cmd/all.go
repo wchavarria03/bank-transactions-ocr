@@ -11,7 +11,7 @@ var allCmd = &cobra.Command{
 	Aliases: []string{"a", "process"},
 	Short:   "Run the complete transaction processing workflow",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return app.ExtractHandler.Handle(
+		return deps.Handlers.Extract.Handle(
 			context.Background(),
 			cfg.InputDir,
 			cfg.OutputDir,

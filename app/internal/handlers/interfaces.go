@@ -9,3 +9,7 @@ import (
 type Importer interface {
 	Import(ctx context.Context, stmt *models.Statement, bankName string) error
 }
+
+type AccountLister interface {
+	List(ctx context.Context) ([]*models.Account, error)
+}

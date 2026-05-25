@@ -11,3 +11,7 @@ type ClassificationService struct {
 }
 
 type TransferService struct{}
+
+type AccountService struct {
+	accounts AccountRepository
+}

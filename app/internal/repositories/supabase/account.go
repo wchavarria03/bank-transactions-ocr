@@ -11,6 +11,11 @@ func NewAccountRepository(client *databases.SupabaseClient) *AccountRepository {
 	return &AccountRepository{client: client}
 }
 
+func (r *AccountRepository) FindAll(ctx context.Context) ([]*models.Account, error) {
+	// TODO: GET /rest/v1/accounts?order=created_at.desc
+	return nil, nil
+}
+
 func (r *AccountRepository) FindByAccountNumber(ctx context.Context, number string) (*models.Account, error) {
 	// TODO: GET /rest/v1/accounts?account_number=eq.<number>
 	return nil, nil

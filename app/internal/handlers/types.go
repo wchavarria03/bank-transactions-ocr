@@ -5,3 +5,7 @@ type ExtractHandler struct {
 }
 
 type DumpHandler struct{}
+
+type AccountHandler struct {
+	svc AccountLister
+}
