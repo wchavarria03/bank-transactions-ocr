@@ -43,7 +43,8 @@ func (r *TransactionRepository) UpsertBatch(ctx context.Context, accountID strin
 			SourceFile:  sourceFile,
 		}
 	}
-	_, err := databases.Post[struct{}](ctx, r.client, "/rest/v1/transactions", rows,
-		"resolution=ignore-duplicates")
+	_, err := databases.Post[struct{}](ctx, r.client,
+		"/rest/v1/transactions?on_conflict=account_id,date,reference,amount",
+		rows, "resolution=ignore-duplicates")
 	return err
 }
