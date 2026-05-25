@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strings"
@@ -19,6 +20,13 @@ type supabaseClaims struct {
 // Auth validates the Supabase JWT from the Authorization header and stores
 // the user token and ID in the request context for downstream use.
 func Auth(jwtSecret string) gin.HandlerFunc {
+	// Supabase signs JWTs with the base64-decoded secret bytes.
+	// Fall back to raw bytes if the secret is not valid base64.
+	keyBytes, err := base64.StdEncoding.DecodeString(jwtSecret)
+	if err != nil {
+		keyBytes = []byte(jwtSecret)
+	}
+
 	return func(c *gin.Context) {
 		header := c.GetHeader("Authorization")
 		if !strings.HasPrefix(header, "Bearer ") {
@@ -33,7 +41,7 @@ func Auth(jwtSecret string) gin.HandlerFunc {
 			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 			}
-			return []byte(jwtSecret), nil
+			return keyBytes, nil
 		})
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
