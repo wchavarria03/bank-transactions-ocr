@@ -15,7 +15,7 @@ func NewServer(addr string, hdlrs *handlers.Registry) *Server {
 	return &Server{
 		httpServer: &http.Server{
 			Addr:         addr,
-			Handler:      router.mux,
+			Handler:      router.engine,
 			ReadTimeout:  15 * time.Second,
 			WriteTimeout: 15 * time.Second,
 			IdleTimeout:  60 * time.Second,

@@ -1,23 +1,20 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func NewAccountHandler(svc AccountLister) *AccountHandler {
 	return &AccountHandler{svc: svc}
 }
 
-func (h *AccountHandler) List(w http.ResponseWriter, r *http.Request) {
-	accounts, err := h.svc.List(r.Context())
+func (h *AccountHandler) List(c *gin.Context) {
+	accounts, err := h.svc.List(c.Request.Context())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(accounts); err != nil {
-		http.Error(w, "failed to encode response", http.StatusInternalServerError)
-	}
+	c.JSON(http.StatusOK, accounts)
 }

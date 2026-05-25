@@ -3,10 +3,14 @@
 //nolint:revive // Package name httpserver is intentional for internal HTTP routing.
 package httpserver
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 type Router struct {
-	mux *http.ServeMux
+	engine *gin.Engine
 }
 
 type Server struct {
