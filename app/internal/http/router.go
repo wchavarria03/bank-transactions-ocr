@@ -4,22 +4,26 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"ledger-api/app/internal/handlers"
+	"ledger-api/app/internal/http/middleware"
 )
 
 // NewRouter creates a new Router with all routes configured.
-func NewRouter(hdlrs *handlers.Registry) *Router {
+func NewRouter(hdlrs *handlers.Registry, jwtSecret string, allowedOrigins []string) *Router {
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.Use(gin.Logger())
+	engine.Use(middleware.CORS(allowedOrigins))
 
-	setupRoutes(engine, hdlrs)
+	setupRoutes(engine, hdlrs, jwtSecret)
 
 	return &Router{engine: engine}
 }
 
 // setupRoutes configures all versioned routes for the application.
-func setupRoutes(engine *gin.Engine, hdlrs *handlers.Registry) {
+func setupRoutes(engine *gin.Engine, hdlrs *handlers.Registry, jwtSecret string) {
 	v1 := engine.Group("/v1")
+	v1.Use(middleware.Auth(jwtSecret))
+
 	setupAccountRoutes(v1, hdlrs)
 }
 

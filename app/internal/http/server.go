@@ -9,8 +9,8 @@ import (
 )
 
 // NewServer creates an HTTP server bound to addr using routes from the handler registry.
-func NewServer(addr string, hdlrs *handlers.Registry) *Server {
-	router := NewRouter(hdlrs)
+func NewServer(addr, jwtSecret string, allowedOrigins []string, hdlrs *handlers.Registry) *Server {
+	router := NewRouter(hdlrs, jwtSecret, allowedOrigins)
 
 	return &Server{
 		httpServer: &http.Server{

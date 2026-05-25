@@ -7,14 +7,16 @@ import (
 
 type SupabaseClient struct {
 	BaseURL    string
-	APIKey     string
+	APIKey     string // service role key — bypasses RLS, used by CLI
+	AnonKey    string // anon key — used with user JWTs so RLS applies
 	HTTPClient *http.Client
 }
 
-func NewSupabaseClient(baseURL, apiKey string) *SupabaseClient {
+func NewSupabaseClient(baseURL, apiKey, anonKey string) *SupabaseClient {
 	return &SupabaseClient{
 		BaseURL:    baseURL,
 		APIKey:     apiKey,
+		AnonKey:    anonKey,
 		HTTPClient: &http.Client{Timeout: 30 * time.Second},
 	}
 }

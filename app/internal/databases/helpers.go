@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+
+	"ledger-api/app/internal/auth"
 )
 
 type postgrestError struct {
@@ -19,14 +21,24 @@ func (e *postgrestError) Error() string {
 	return fmt.Sprintf("postgrest %s: %s", e.Code, e.Message)
 }
 
-func addHeaders(req *http.Request, apiKey, prefer string) {
+func addHeaders(req *http.Request, apiKey, bearer, prefer string) {
 	req.Header.Set("apikey", apiKey)
-	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set("Authorization", "Bearer "+bearer)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 	if prefer != "" {
 		req.Header.Set("Prefer", prefer)
 	}
+}
+
+// resolveKeys returns the apiKey and bearer token to use for a request.
+// If a user JWT is in context (web request), use anon key + user JWT so RLS applies.
+// Otherwise fall back to service key (CLI import, bypasses RLS).
+func resolveKeys(ctx context.Context, c *SupabaseClient) (apiKey, bearer string) {
+	if userToken := auth.UserTokenFromContext(ctx); userToken != "" {
+		return c.AnonKey, userToken
+	}
+	return c.APIKey, c.APIKey
 }
 
 // Get sends an authenticated GET request to path with query params and decodes the JSON response into T.
@@ -42,7 +54,8 @@ func Get[T any](ctx context.Context, c *SupabaseClient, path string, params url.
 	if err != nil {
 		return zero, fmt.Errorf("build request: %w", err)
 	}
-	addHeaders(req, c.APIKey, "")
+	apiKey, bearer := resolveKeys(ctx, c)
+	addHeaders(req, apiKey, bearer, "")
 
 	return decode[T](c.HTTPClient.Do(req))
 }
@@ -60,7 +73,8 @@ func Post[T any](ctx context.Context, c *SupabaseClient, path string, body any, 
 	if err != nil {
 		return zero, fmt.Errorf("build request: %w", err)
 	}
-	addHeaders(req, c.APIKey, prefer)
+	apiKey, bearer := resolveKeys(ctx, c)
+	addHeaders(req, apiKey, bearer, prefer)
 
 	return decode[T](c.HTTPClient.Do(req))
 }

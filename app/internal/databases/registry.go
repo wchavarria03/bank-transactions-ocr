@@ -1,8 +1,9 @@
 package databases
 
 type Config struct {
-	URL string
-	Key string
+	URL     string
+	Key     string
+	AnonKey string
 }
 
 type Registry struct {
@@ -11,7 +12,7 @@ type Registry struct {
 
 func NewRegistry(cfg Config) (*Registry, error) {
 	return &Registry{
-		Supabase: NewSupabaseClient(cfg.URL, cfg.Key),
+		Supabase: NewSupabaseClient(cfg.URL, cfg.Key, cfg.AnonKey),
 	}, nil
 }
 

@@ -11,10 +11,13 @@ import (
 )
 
 type Config struct {
-	SupabaseURL string
-	SupabaseKey string
-	ServerAddr  string
-	UserID      string
+	SupabaseURL    string
+	SupabaseKey    string
+	SupabaseAnonKey string
+	ServerAddr     string
+	UserID         string
+	JWTSecret      string
+	AllowedOrigins []string
 }
 
 // Dependencies is a collection of all application dependencies.
@@ -33,8 +36,9 @@ func NewDependencies(cfg Config) (*Dependencies, error) {
 	var err error
 
 	deps.Databases, err = databases.NewRegistry(databases.Config{
-		URL: cfg.SupabaseURL,
-		Key: cfg.SupabaseKey,
+		URL:     cfg.SupabaseURL,
+		Key:     cfg.SupabaseKey,
+		AnonKey: cfg.SupabaseAnonKey,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("creating database registry: %w", err)
@@ -49,7 +53,7 @@ func NewDependencies(cfg Config) (*Dependencies, error) {
 		return nil, fmt.Errorf("creating handler registry: %w", err)
 	}
 
-	deps.Server = httpserver.NewServer(cfg.ServerAddr, deps.Handlers)
+	deps.Server = httpserver.NewServer(cfg.ServerAddr, cfg.JWTSecret, cfg.AllowedOrigins, deps.Handlers)
 
 	return &deps, nil
 }
