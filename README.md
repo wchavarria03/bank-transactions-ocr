@@ -1,119 +1,50 @@
-# Bank Transactions OCR
+# ledger-api
 
-A command-line tool for extracting and processing transaction data from bank statements in PDF format.
+A Go API that ingests Costa Rican bank statement PDFs, extracts transactions, stores them in Supabase, and serves them via REST API to a frontend.
 
-## Features
-
-- Extract transaction data from PDF bank statements
-- Process and structure transaction information into a structured format
-- Support for batch processing multiple documents
-- Configurable input and output directories
-- Verbose mode for detailed operation logging
-
-## Installation
-
-### Prerequisites
-
-- Go 1.24 or later
-- Git
-
-### Building from Source
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/ledger-api.git
-   cd ledger-api
-   ```
-
-2. Build the project:
-   ```bash
-   go build -o ledger-api
-   ```
-
-## Usage
-
-The tool provides several commands for processing bank statement documents:
-
-### Extract Transaction Data
-
-Extract transaction data from PDF bank statements in the input directory:
+## Quick start
 
 ```bash
-# Basic usage with default directories
-./ledger-api extract
-
-# With verbose output
-./ledger-api -v extract
-
-# With custom input and output directories
-./ledger-api -i /path/to/pdfs -o /path/to/output extract
-
-# Full example with all options
-./ledger-api -v -i /path/to/pdfs -o /path/to/output extract
+git clone https://github.com/wchavarria03/ledger-api.git
+cd ledger-api
+cp .env.example .env   # fill in your credentials
+go run main.go serve
 ```
 
-### Process All
+The API will be available at `http://localhost:8080`.
 
-Run the complete workflow (extract transactions):
+For full setup instructions — local development with a local database or connecting to Supabase — see [docs/running.md](docs/running.md).
 
-```bash
-./ledger-api all
-```
+## Commands
 
-### Global Flags
+| Command | Description |
+|---------|-------------|
+| `serve` | Start the HTTP API server |
+| `extract` | Parse PDFs from `data/input/` and import transactions into the DB |
 
-- `-v, --verbose`: Enable verbose output
-- `-o, --output`: Output directory for processed files (default: "output")
-- `-i, --input-dir`: Directory containing input PDF documents (default: "pdfs")
+## API
 
-Example with custom directories:
-```bash
-./ledger-api -i custom-input -o custom-output extract
-```
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/v1/accounts` | List all accounts |
 
-## Project Structure
+## Project structure
 
 ```
-.
-├── .devcontainer/
-├── cmd/
-│   ├── root.go
-│   ├── extract.go
-│   └── all.go
+app/
+├── cmd/                        # CLI commands (serve, extract)
 ├── internal/
-│   ├── pdfextract/
-│   ├── transactionsextractor/
-│   └── pdfshellreader/
-├── pdfs/
-├── output/
-├── .dockerignore
-├── .gitignore
-├── .golangci.yml
-├── Dockerfile
-├── docker-compose.yml
-├── go.mod
-├── go.sum
-├── main.go
-└── README.md
+│   ├── core/                   # Dependency wiring
+│   ├── databases/              # Supabase HTTP client + generic helpers
+│   ├── repositories/supabase/  # PostgREST repository implementations
+│   ├── services/               # Business logic
+│   ├── handlers/               # HTTP handlers
+│   ├── http/                   # Gin router + server
+│   ├── models/                 # Domain types
+│   ├── parser/                 # PDF parsing (BAC Credomatic)
+│   └── db/migrations/          # Versioned SQL migrations
+data/
+├── input/                      # Drop PDFs here
+└── output/                     # Dry-run JSON output
+docs/                           # Detailed guides
 ```
-
-## Development
-
-### Running Tests
-
-```bash
-go test ./...
-```
-
-### Docker Support
-
-The project includes Docker support for containerized execution:
-
-```bash
-# Build and run using Docker Compose
-docker-compose up --build
-```
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details. 
