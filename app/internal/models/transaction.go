@@ -31,5 +31,6 @@ type Transaction struct {
 type Statement struct {
 	AccountNumber string
 	ShortNumber   string
+	SourceFile    string
 	Transactions  []Transaction
 }

@@ -13,7 +13,7 @@ type AccountRepository interface {
 }
 
 type TransactionRepository interface {
-	UpsertBatch(ctx context.Context, accountID string, txs []models.Transaction) error
+	UpsertBatch(ctx context.Context, accountID string, sourceFile string, txs []models.Transaction) error
 }
 
 type ClassificationRuleRepository interface {

@@ -20,13 +20,14 @@ type transactionRow struct {
 	Amount      decimal.Decimal `json:"amount"`
 	Balance     decimal.Decimal `json:"balance"`
 	Currency    string          `json:"currency"`
+	SourceFile  string          `json:"source_file,omitempty"`
 }
 
 func NewTransactionRepository(client *databases.SupabaseClient) *TransactionRepository {
 	return &TransactionRepository{client: client}
 }
 
-func (r *TransactionRepository) UpsertBatch(ctx context.Context, accountID string, txs []models.Transaction) error {
+func (r *TransactionRepository) UpsertBatch(ctx context.Context, accountID string, sourceFile string, txs []models.Transaction) error {
 	rows := make([]transactionRow, len(txs))
 	for i, tx := range txs {
 		rows[i] = transactionRow{
@@ -39,6 +40,7 @@ func (r *TransactionRepository) UpsertBatch(ctx context.Context, accountID strin
 			Amount:      tx.Amount,
 			Balance:     tx.Balance,
 			Currency:    tx.Currency,
+			SourceFile:  sourceFile,
 		}
 	}
 	_, err := databases.Post[struct{}](ctx, r.client, "/rest/v1/transactions", rows,

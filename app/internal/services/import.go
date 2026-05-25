@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"ledger-api/app/internal/models"
 )
@@ -22,6 +23,12 @@ func NewImportService(
 }
 
 func (s *ImportService) Import(ctx context.Context, stmt *models.Statement, bankName string) error {
+	// bank is the prefix before "/" in the parser name (e.g. "bac/total-account" → "bac")
+	bank := bankName
+	if idx := strings.Index(bankName, "/"); idx != -1 {
+		bank = bankName[:idx]
+	}
+
 	acc, err := s.accounts.FindByAccountNumber(ctx, stmt.AccountNumber)
 	if err != nil {
 		return fmt.Errorf("lookup account: %w", err)
@@ -33,15 +40,15 @@ func (s *ImportService) Import(ctx context.Context, stmt *models.Statement, bank
 			currency = stmt.Transactions[0].Currency
 		}
 
-		name := bankName
+		name := strings.ToUpper(bank)
 		if len(stmt.AccountNumber) >= 4 {
-			name = bankName + " - ****" + stmt.AccountNumber[len(stmt.AccountNumber)-4:]
+			name = strings.ToUpper(bank) + " - ****" + stmt.AccountNumber[len(stmt.AccountNumber)-4:]
 		}
 
 		acc, err = s.accounts.Upsert(ctx, &models.Account{
 			AccountNumber: stmt.AccountNumber,
 			ShortNumber:   stmt.ShortNumber,
-			BankName:      bankName,
+			BankName:      bank,
 			Name:          name,
 			Currency:      currency,
 			UserID:        s.userID,
@@ -51,12 +58,12 @@ func (s *ImportService) Import(ctx context.Context, stmt *models.Statement, bank
 		}
 	}
 
-	txs, err := s.classifier.Apply(ctx, bankName, stmt.Transactions)
+	txs, err := s.classifier.Apply(ctx, bank, stmt.Transactions)
 	if err != nil {
 		return fmt.Errorf("classify transactions: %w", err)
 	}
 
-	if err := s.transactions.UpsertBatch(ctx, acc.ID, txs); err != nil {
+	if err := s.transactions.UpsertBatch(ctx, acc.ID, stmt.SourceFile, txs); err != nil {
 		return fmt.Errorf("upsert transactions: %w", err)
 	}
 

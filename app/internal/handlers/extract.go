@@ -64,6 +64,7 @@ func (h *ExtractHandler) Handle(ctx context.Context, inputDir, outputDir string,
 		if err != nil {
 			return fmt.Errorf("parse %s: %w", baseName, err)
 		}
+		stmt.SourceFile = file.Name()
 		if verbose {
 			fmt.Printf("  Account: %s (short: %s)\n", stmt.AccountNumber, stmt.ShortNumber)
 		}
