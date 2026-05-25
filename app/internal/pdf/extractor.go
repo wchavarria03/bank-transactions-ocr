@@ -9,12 +9,12 @@ import (
 
 func ProcessPDFs(inputDir, outputDir string, verbose bool) error {
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
-		return fmt.Errorf("failed to create output directory: %v", err)
+		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
 	files, err := os.ReadDir(inputDir)
 	if err != nil {
-		return fmt.Errorf("failed to read input directory: %v", err)
+		return fmt.Errorf("failed to read input directory: %w", err)
 	}
 
 	for _, file := range files {
@@ -26,7 +26,7 @@ func ProcessPDFs(inputDir, outputDir string, verbose bool) error {
 		outputPath := filepath.Join(outputDir, file.Name()+".txt")
 
 		if err := ExtractText(inputPath, outputPath, verbose); err != nil {
-			return fmt.Errorf("failed to process %s: %v", file.Name(), err)
+			return fmt.Errorf("failed to process %s: %w", file.Name(), err)
 		}
 
 		if verbose {
@@ -40,23 +40,23 @@ func ProcessPDFs(inputDir, outputDir string, verbose bool) error {
 func ExtractText(inputPath, outputPath string, verbose bool) error {
 	reader, err := NewReader(inputPath)
 	if err != nil {
-		return fmt.Errorf("failed to create PDF reader: %v", err)
+		return fmt.Errorf("failed to create PDF reader: %w", err)
 	}
 	defer reader.Close()
 
 	outFile, err := os.Create(outputPath)
 	if err != nil {
-		return fmt.Errorf("failed to create output file: %v", err)
+		return fmt.Errorf("failed to create output file: %w", err)
 	}
 	defer outFile.Close()
 
 	for i := 1; i <= reader.GetNumPages(); i++ {
 		text, err := reader.ExtractTextFromPage(i)
 		if err != nil {
-			return fmt.Errorf("failed to extract text from page %d: %v", i, err)
+			return fmt.Errorf("failed to extract text from page %d: %w", i, err)
 		}
 		if _, err := outFile.WriteString(text + "\n"); err != nil {
-			return fmt.Errorf("failed to write text: %v", err)
+			return fmt.Errorf("failed to write text: %w", err)
 		}
 	}
 

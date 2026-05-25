@@ -1,6 +1,9 @@
 package databases
 
-import "net/http"
+import (
+	"net/http"
+	"time"
+)
 
 type SupabaseClient struct {
 	BaseURL    string
@@ -12,6 +15,6 @@ func NewSupabaseClient(baseURL, apiKey string) *SupabaseClient {
 	return &SupabaseClient{
 		BaseURL:    baseURL,
 		APIKey:     apiKey,
-		HTTPClient: &http.Client{},
+		HTTPClient: &http.Client{Timeout: 30 * time.Second},
 	}
 }

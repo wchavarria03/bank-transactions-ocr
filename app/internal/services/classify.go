@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"bank-transactions-ocr/app/internal/models"
@@ -14,10 +15,13 @@ func NewClassificationService(rules ClassificationRuleRepository) *Classificatio
 // Apply fetches classification rules and applies them to the transactions, returning
 // the updated slice. Rules are matched by bank name, code, and description pattern;
 // the highest-priority matching rule wins.
-func (s *ClassificationService) Apply(ctx context.Context, bankName string, txs []models.Transaction) []models.Transaction {
+func (s *ClassificationService) Apply(ctx context.Context, bankName string, txs []models.Transaction) ([]models.Transaction, error) {
 	allRules, err := s.rules.FindAll(ctx)
-	if err != nil || len(allRules) == 0 {
-		return txs
+	if err != nil {
+		return nil, fmt.Errorf("fetch classification rules: %w", err)
+	}
+	if len(allRules) == 0 {
+		return txs, nil
 	}
 
 	result := make([]models.Transaction, len(txs))
@@ -33,7 +37,7 @@ func (s *ClassificationService) Apply(ctx context.Context, bankName string, txs 
 		}
 	}
 
-	return result
+	return result, nil
 }
 
 func findBestRule(rules []models.ClassificationRule, bankName string, tx models.Transaction) *models.ClassificationRule {

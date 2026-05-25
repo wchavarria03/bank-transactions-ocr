@@ -15,24 +15,24 @@ type Reader struct {
 
 func NewReader(pdfPath string) (*Reader, error) {
 	if _, err := os.Stat(pdfPath); os.IsNotExist(err) {
-		return nil, fmt.Errorf("PDF file does not exist: %v", err)
+		return nil, fmt.Errorf("PDF file does not exist: %w", err)
 	}
 
 	f, err := os.Open(pdfPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open PDF file: %v", err)
+		return nil, fmt.Errorf("failed to open PDF file: %w", err)
 	}
 
 	fileInfo, err := f.Stat()
 	if err != nil {
 		f.Close()
-		return nil, fmt.Errorf("failed to get file info: %v", err)
+		return nil, fmt.Errorf("failed to get file info: %w", err)
 	}
 
 	reader, err := pdf.NewReader(f, fileInfo.Size())
 	if err != nil {
 		f.Close()
-		return nil, fmt.Errorf("failed to create PDF reader: %v", err)
+		return nil, fmt.Errorf("failed to create PDF reader: %w", err)
 	}
 
 	return &Reader{
@@ -58,7 +58,7 @@ func (r *Reader) ExtractTextFromPage(pageNum int) (string, error) {
 
 	text, err := page.GetPlainText(nil)
 	if err != nil {
-		return "", fmt.Errorf("failed to extract text from page %d: %v", pageNum, err)
+		return "", fmt.Errorf("failed to extract text from page %d: %w", pageNum, err)
 	}
 
 	return text, nil

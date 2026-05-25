@@ -36,7 +36,10 @@ func (s *ImportService) Import(ctx context.Context, stmt *models.Statement, bank
 		}
 	}
 
-	txs := s.classifier.Apply(ctx, bankName, stmt.Transactions)
+	txs, err := s.classifier.Apply(ctx, bankName, stmt.Transactions)
+	if err != nil {
+		return fmt.Errorf("classify transactions: %w", err)
+	}
 
 	if err := s.transactions.UpsertBatch(ctx, acc.ID, txs); err != nil {
 		return fmt.Errorf("upsert transactions: %w", err)

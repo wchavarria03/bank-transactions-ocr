@@ -3,15 +3,22 @@ package bac
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
+
+	"github.com/shopspring/decimal"
 
 	"bank-transactions-ocr/app/internal/models"
 	"bank-transactions-ocr/app/internal/parser"
 )
 
 var ibanPattern = regexp.MustCompile(`^CR\d{20}$`)
+
+const (
+	bacFieldCount  = 7  // columns per transaction row: Fecha|Referencia|Código|Descripción|Débito|Crédito|Balance
+	bacShortStart  = 10 // start index of 9-digit short number within the 20 IBAN digits
+	bacShortEnd    = 19 // end index (exclusive)
+)
 
 func init() {
 	parser.Register(&totalAccountParser{})
@@ -95,7 +102,7 @@ func (p *totalAccountParser) Parse(text string) (*models.Statement, error) {
 
 		fields = append(fields, trimmed)
 
-		if len(fields) == 7 {
+		if len(fields) == bacFieldCount {
 			tx, err := parseFields(fields, currency)
 			if err == nil {
 				transactions = append(transactions, tx)
@@ -126,7 +133,7 @@ func bacShortNumber(iban string) string {
 	if len(digits) < 19 {
 		return ""
 	}
-	return digits[10:19]
+	return digits[bacShortStart:bacShortEnd]
 }
 
 // parseFields converts the 7 raw text fields into a Transaction.
@@ -145,8 +152,8 @@ func parseFields(fields []string, currency string) (models.Transaction, error) {
 	credit := parseAmount(fields[5])
 
 	amount := credit
-	if debit > 0 {
-		amount = -debit
+	if debit.IsPositive() {
+		amount = debit.Neg()
 	}
 
 	return models.Transaction{
@@ -161,7 +168,7 @@ func parseFields(fields []string, currency string) (models.Transaction, error) {
 	}, nil
 }
 
-func deriveType(code, description string, amount float64) models.TransactionType {
+func deriveType(code, description string, amount decimal.Decimal) models.TransactionType {
 	desc := strings.ToUpper(description)
 
 	if strings.Contains(desc, "COMISION") || strings.Contains(desc, "COBRO ADMINISTR") {
@@ -171,12 +178,12 @@ func deriveType(code, description string, amount float64) models.TransactionType
 		return models.TypeInterest
 	}
 	if code == "TF" {
-		if amount < 0 {
+		if amount.IsNegative() {
 			return models.TypeTransferOut
 		}
 		return models.TypeTransferIn
 	}
-	if amount < 0 {
+	if amount.IsNegative() {
 		return models.TypeExpense
 	}
 	return models.TypeIncome
@@ -192,16 +199,15 @@ func parseDate(s string) (time.Time, error) {
 	return time.Time{}, fmt.Errorf("unrecognized date format")
 }
 
-func parseAmount(s string) float64 {
+func parseAmount(s string) decimal.Decimal {
 	s = strings.ReplaceAll(s, ",", "")
 	s = strings.ReplaceAll(s, " ", "")
-	var f float64
-	fmt.Sscanf(s, "%f", &f)
-	return f
+	d, _ := decimal.NewFromString(s)
+	return d
 }
 
 func isNumeric(s string) bool {
 	cleaned := strings.ReplaceAll(s, ",", "")
-	_, err := strconv.ParseFloat(cleaned, 64)
+	_, err := decimal.NewFromString(cleaned)
 	return err == nil
 }
