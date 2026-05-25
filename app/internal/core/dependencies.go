@@ -53,7 +53,8 @@ func NewDependencies(cfg Config) (*Dependencies, error) {
 		return nil, fmt.Errorf("creating handler registry: %w", err)
 	}
 
-	deps.Server = httpserver.NewServer(cfg.ServerAddr, cfg.JWTSecret, cfg.AllowedOrigins, deps.Handlers)
+	jwksURL := cfg.SupabaseURL + "/auth/v1/.well-known/jwks.json"
+	deps.Server = httpserver.NewServer(cfg.ServerAddr, cfg.JWTSecret, jwksURL, cfg.AllowedOrigins, deps.Handlers)
 
 	return &deps, nil
 }
