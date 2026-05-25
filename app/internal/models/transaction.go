@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/shopspring/decimal"
+)
 
 type TransactionType string
 
@@ -19,8 +23,8 @@ type Transaction struct {
 	Code        string
 	Type        TransactionType
 	Description string
-	Amount      float64
-	Balance     float64
+	Amount      decimal.Decimal
+	Balance     decimal.Decimal
 	Currency    string
 }
 

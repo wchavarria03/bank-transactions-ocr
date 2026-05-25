@@ -1,7 +1,6 @@
 package services
 
 import (
-	"math"
 	"strings"
 
 	"bank-transactions-ocr/app/internal/models"
@@ -72,7 +71,7 @@ func isTransferPair(a, b models.Transaction, shortA, shortB string) bool {
 	}
 
 	// Tier 3: same date + same absolute amount (opposite signs)
-	if a.Date.Equal(b.Date) && math.Abs(a.Amount+b.Amount) < 0.01 {
+	if a.Date.Equal(b.Date) && a.Amount.Add(b.Amount).IsZero() {
 		return true
 	}
 

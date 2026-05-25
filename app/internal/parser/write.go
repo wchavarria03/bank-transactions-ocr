@@ -17,14 +17,14 @@ func WriteTransactions(path string, transactions []models.Transaction) error {
 
 	w := bufio.NewWriter(f)
 	for _, tx := range transactions {
-		line := fmt.Sprintf("%s--%s--%s--%s--%s--%.2f--%.2f--%s\n",
+		line := fmt.Sprintf("%s--%s--%s--%s--%s--%s--%s--%s\n",
 			tx.Date.Format("2006-01-02"),
 			tx.Reference,
 			tx.Code,
 			string(tx.Type),
 			tx.Description,
-			tx.Amount,
-			tx.Balance,
+			tx.Amount.StringFixed(2),
+			tx.Balance.StringFixed(2),
 			tx.Currency,
 		)
 		if _, err := w.WriteString(line); err != nil {
