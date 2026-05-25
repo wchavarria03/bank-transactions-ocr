@@ -44,7 +44,7 @@ func Auth(jwtSecret string) gin.HandlerFunc {
 			return keyBytes, nil
 		})
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token", "detail": err.Error()})
 			return
 		}
 
