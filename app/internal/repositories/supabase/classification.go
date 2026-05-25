@@ -2,6 +2,7 @@ package supabase
 
 import (
 	"context"
+	"net/url"
 
 	"bank-transactions-ocr/app/internal/databases"
 	"bank-transactions-ocr/app/internal/models"
@@ -12,6 +13,7 @@ func NewClassificationRepository(client *databases.SupabaseClient) *Classificati
 }
 
 func (r *ClassificationRepository) FindAll(ctx context.Context) ([]models.ClassificationRule, error) {
-	// TODO: GET /rest/v1/classification_rules?order=priority.desc
-	return nil, nil
+	return databases.Get[[]models.ClassificationRule](ctx, r.client, "/rest/v1/classification_rules", url.Values{
+		"order": []string{"priority.desc"},
+	})
 }

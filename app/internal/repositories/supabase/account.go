@@ -2,6 +2,7 @@ package supabase
 
 import (
 	"context"
+	"net/url"
 
 	"bank-transactions-ocr/app/internal/databases"
 	"bank-transactions-ocr/app/internal/models"
@@ -12,16 +13,33 @@ func NewAccountRepository(client *databases.SupabaseClient) *AccountRepository {
 }
 
 func (r *AccountRepository) FindAll(ctx context.Context) ([]*models.Account, error) {
-	// TODO: GET /rest/v1/accounts?order=created_at.desc
-	return nil, nil
+	return databases.Get[[]*models.Account](ctx, r.client, "/rest/v1/accounts", url.Values{
+		"order": []string{"created_at.desc"},
+	})
 }
 
 func (r *AccountRepository) FindByAccountNumber(ctx context.Context, number string) (*models.Account, error) {
-	// TODO: GET /rest/v1/accounts?account_number=eq.<number>
-	return nil, nil
+	results, err := databases.Get[[]*models.Account](ctx, r.client, "/rest/v1/accounts", url.Values{
+		"account_number": []string{"eq." + number},
+		"limit":          []string{"1"},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(results) == 0 {
+		return nil, nil
+	}
+	return results[0], nil
 }
 
 func (r *AccountRepository) Upsert(ctx context.Context, a *models.Account) (*models.Account, error) {
-	// TODO: POST /rest/v1/accounts with Prefer: resolution=merge-duplicates
-	return a, nil
+	results, err := databases.Post[[]*models.Account](ctx, r.client, "/rest/v1/accounts", a,
+		"resolution=merge-duplicates,return=representation")
+	if err != nil {
+		return nil, err
+	}
+	if len(results) == 0 {
+		return a, nil
+	}
+	return results[0], nil
 }
