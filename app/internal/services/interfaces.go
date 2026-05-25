@@ -14,6 +14,7 @@ type AccountRepository interface {
 
 type TransactionRepository interface {
 	UpsertBatch(ctx context.Context, accountID string, sourceFile string, txs []models.Transaction) error
+	GetByAccountID(ctx context.Context, accountID string) ([]*models.Transaction, error)
 }
 
 type ClassificationRuleRepository interface {

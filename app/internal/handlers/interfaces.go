@@ -13,3 +13,7 @@ type Importer interface {
 type AccountLister interface {
 	List(ctx context.Context) ([]*models.Account, error)
 }
+
+type TransactionLister interface {
+	ListByAccount(ctx context.Context, accountID string) ([]*models.Transaction, error)
+}

@@ -24,6 +24,7 @@ func setupRoutes(engine *gin.Engine, hdlrs *handlers.Registry, jwtSecret string)
 	v1 := engine.Group("/v1")
 	v1.Use(middleware.Auth(jwtSecret))
 
+	v1.GET("/me", hdlrs.Me.GetMe)
 	setupAccountRoutes(v1, hdlrs)
 }
 
@@ -31,4 +32,5 @@ func setupRoutes(engine *gin.Engine, hdlrs *handlers.Registry, jwtSecret string)
 func setupAccountRoutes(rg *gin.RouterGroup, hdlrs *handlers.Registry) {
 	accounts := rg.Group("/accounts")
 	accounts.GET("", hdlrs.Account.List)
+	accounts.GET("/:id/transactions", hdlrs.Transaction.ListByAccount)
 }

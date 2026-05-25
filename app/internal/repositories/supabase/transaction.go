@@ -2,6 +2,8 @@ package supabase
 
 import (
 	"context"
+	"net/url"
+	"time"
 
 	"github.com/shopspring/decimal"
 
@@ -11,6 +13,7 @@ import (
 
 // transactionRow is the DB shape for a transaction — includes account_id which is absent from models.Transaction.
 type transactionRow struct {
+	ID          string          `json:"id,omitempty"`
 	AccountID   string          `json:"account_id"`
 	Date        string          `json:"date"`
 	Reference   string          `json:"reference,omitempty"`
@@ -25,6 +28,32 @@ type transactionRow struct {
 
 func NewTransactionRepository(client *databases.SupabaseClient) *TransactionRepository {
 	return &TransactionRepository{client: client}
+}
+
+func (r *TransactionRepository) GetByAccountID(ctx context.Context, accountID string) ([]*models.Transaction, error) {
+	rows, err := databases.Get[[]*transactionRow](ctx, r.client, "/rest/v1/transactions", url.Values{
+		"account_id": []string{"eq." + accountID},
+		"order":      []string{"date.desc"},
+	})
+	if err != nil {
+		return nil, err
+	}
+	txs := make([]*models.Transaction, len(rows))
+	for i, row := range rows {
+		date, _ := time.Parse("2006-01-02", row.Date)
+		txs[i] = &models.Transaction{
+			ID:          row.ID,
+			Date:        date,
+			Reference:   row.Reference,
+			Code:        row.Code,
+			Type:        models.TransactionType(row.Type),
+			Description: row.Description,
+			Amount:      row.Amount,
+			Balance:     row.Balance,
+			Currency:    row.Currency,
+		}
+	}
+	return txs, nil
 }
 
 func (r *TransactionRepository) UpsertBatch(ctx context.Context, accountID string, sourceFile string, txs []models.Transaction) error {

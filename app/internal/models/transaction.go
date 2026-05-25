@@ -18,14 +18,15 @@ const (
 )
 
 type Transaction struct {
-	Date        time.Time
-	Reference   string
-	Code        string
-	Type        TransactionType
-	Description string
-	Amount      decimal.Decimal
-	Balance     decimal.Decimal
-	Currency    string
+	ID          string          `json:"id,omitempty"`
+	Date        time.Time       `json:"date"`
+	Reference   string          `json:"reference,omitempty"`
+	Code        string          `json:"code,omitempty"`
+	Type        TransactionType `json:"type"`
+	Description string          `json:"description"`
+	Amount      decimal.Decimal `json:"amount"`
+	Balance     decimal.Decimal `json:"balance"`
+	Currency    string          `json:"currency"`
 }
 
 type Statement struct {

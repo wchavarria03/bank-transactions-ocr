@@ -4,16 +4,20 @@ import "ledger-api/app/internal/services"
 
 // Registry holds all HTTP handlers.
 type Registry struct {
-	Account *AccountHandler
-	Dump    *DumpHandler
-	Extract *ExtractHandler
+	Account     *AccountHandler
+	Dump        *DumpHandler
+	Extract     *ExtractHandler
+	Me          *MeHandler
+	Transaction *TransactionHandler
 }
 
 func NewRegistry(svc *services.Registry) (*Registry, error) {
 	return &Registry{
-		Account: NewAccountHandler(svc.Account),
-		Dump:    NewDumpHandler(),
-		Extract: NewExtractHandler(svc.Import),
+		Account:     NewAccountHandler(svc.Account),
+		Dump:        NewDumpHandler(),
+		Extract:     NewExtractHandler(svc.Import),
+		Me:          NewMeHandler(),
+		Transaction: NewTransactionHandler(svc.Transaction),
 	}, nil
 }
 

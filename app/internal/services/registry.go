@@ -6,6 +6,7 @@ type Registry struct {
 	Account        *AccountService
 	Classification *ClassificationService
 	Import         *ImportService
+	Transaction    *TransactionService
 	Transfer       *TransferService
 }
 
@@ -15,6 +16,7 @@ func NewRegistry(repos *repositories.Registry, userID string) *Registry {
 		Account:        NewAccountService(repos.Accounts),
 		Classification: classifier,
 		Import:         NewImportService(repos.Accounts, repos.Transactions, classifier, userID),
+		Transaction:    NewTransactionService(repos.Transactions),
 		Transfer:       NewTransferService(),
 	}
 }

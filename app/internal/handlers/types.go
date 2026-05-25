@@ -9,3 +9,9 @@ type DumpHandler struct{}
 type AccountHandler struct {
 	svc AccountLister
 }
+
+type MeHandler struct{}
+
+type TransactionHandler struct {
+	svc TransactionLister
+}
