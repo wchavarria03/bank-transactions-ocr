@@ -4,6 +4,7 @@ type ImportService struct {
 	accounts     AccountRepository
 	transactions TransactionRepository
 	classifier   *ClassificationService
+	userID       string
 }
 
 type ClassificationService struct {

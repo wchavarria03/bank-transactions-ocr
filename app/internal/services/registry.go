@@ -9,12 +9,12 @@ type Registry struct {
 	Transfer       *TransferService
 }
 
-func NewRegistry(repos *repositories.Registry) *Registry {
+func NewRegistry(repos *repositories.Registry, userID string) *Registry {
 	classifier := NewClassificationService(repos.Classifications)
 	return &Registry{
 		Account:        NewAccountService(repos.Accounts),
 		Classification: classifier,
-		Import:         NewImportService(repos.Accounts, repos.Transactions, classifier),
+		Import:         NewImportService(repos.Accounts, repos.Transactions, classifier, userID),
 		Transfer:       NewTransferService(),
 	}
 }

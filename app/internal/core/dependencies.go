@@ -14,6 +14,7 @@ type Config struct {
 	SupabaseURL string
 	SupabaseKey string
 	ServerAddr  string
+	UserID      string
 }
 
 // Dependencies is a collection of all application dependencies.
@@ -41,7 +42,7 @@ func NewDependencies(cfg Config) (*Dependencies, error) {
 
 	deps.Repositories = repositories.NewRegistry(deps.Databases)
 
-	deps.Services = services.NewRegistry(deps.Repositories)
+	deps.Services = services.NewRegistry(deps.Repositories, cfg.UserID)
 
 	deps.Handlers, err = handlers.NewRegistry(deps.Services)
 	if err != nil {

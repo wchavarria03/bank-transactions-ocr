@@ -11,11 +11,13 @@ func NewImportService(
 	accounts AccountRepository,
 	transactions TransactionRepository,
 	classifier *ClassificationService,
+	userID string,
 ) *ImportService {
 	return &ImportService{
 		accounts:     accounts,
 		transactions: transactions,
 		classifier:   classifier,
+		userID:       userID,
 	}
 }
 
@@ -26,10 +28,23 @@ func (s *ImportService) Import(ctx context.Context, stmt *models.Statement, bank
 	}
 
 	if acc == nil {
+		currency := "CRC"
+		if len(stmt.Transactions) > 0 {
+			currency = stmt.Transactions[0].Currency
+		}
+
+		name := bankName
+		if len(stmt.AccountNumber) >= 4 {
+			name = bankName + " - ****" + stmt.AccountNumber[len(stmt.AccountNumber)-4:]
+		}
+
 		acc, err = s.accounts.Upsert(ctx, &models.Account{
 			AccountNumber: stmt.AccountNumber,
 			ShortNumber:   stmt.ShortNumber,
 			BankName:      bankName,
+			Name:          name,
+			Currency:      currency,
+			UserID:        s.userID,
 		})
 		if err != nil {
 			return fmt.Errorf("upsert account: %w", err)

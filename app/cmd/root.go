@@ -16,6 +16,7 @@ type cliConfig struct {
 	SupabaseURL string
 	SupabaseKey string
 	ServerAddr  string
+	UserID      string
 }
 
 var (
@@ -39,6 +40,7 @@ var rootCmd = &cobra.Command{
 			SupabaseURL: cfg.SupabaseURL,
 			SupabaseKey: cfg.SupabaseKey,
 			ServerAddr:  cfg.ServerAddr,
+			UserID:      cfg.UserID,
 		})
 		if err != nil {
 			return fmt.Errorf("initialising dependencies: %w", err)
@@ -62,4 +64,5 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfg.SupabaseURL, "supabase-url", os.Getenv("SUPABASE_URL"), "Supabase project URL")
 	rootCmd.PersistentFlags().StringVar(&cfg.SupabaseKey, "supabase-key", os.Getenv("SUPABASE_KEY"), "Supabase API key")
 	rootCmd.PersistentFlags().StringVar(&cfg.ServerAddr, "addr", ":8080", "HTTP server listen address")
+	rootCmd.PersistentFlags().StringVar(&cfg.UserID, "user-id", os.Getenv("LEDGER_USER_ID"), "Supabase user ID to associate imported data with")
 }
