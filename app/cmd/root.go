@@ -77,7 +77,11 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfg.SupabaseURL, "supabase-url", os.Getenv("SUPABASE_URL"), "Supabase project URL")
 	rootCmd.PersistentFlags().StringVar(&cfg.SupabaseKey, "supabase-key", os.Getenv("SUPABASE_KEY"), "Supabase service role key")
 	rootCmd.PersistentFlags().StringVar(&cfg.SupabaseAnonKey, "supabase-anon-key", os.Getenv("SUPABASE_ANON_KEY"), "Supabase anon key (for user-context requests)")
-	rootCmd.PersistentFlags().StringVar(&cfg.ServerAddr, "addr", ":8080", "HTTP server listen address")
+	defaultAddr := ":8080"
+	if port := os.Getenv("PORT"); port != "" {
+		defaultAddr = ":" + port
+	}
+	rootCmd.PersistentFlags().StringVar(&cfg.ServerAddr, "addr", defaultAddr, "HTTP server listen address")
 	rootCmd.PersistentFlags().StringVar(&cfg.UserID, "user-id", os.Getenv("LEDGER_USER_ID"), "Supabase user ID to associate imported data with")
 	rootCmd.PersistentFlags().StringVar(&cfg.JWTSecret, "jwt-secret", os.Getenv("SUPABASE_JWT_SECRET"), "Supabase JWT secret for token validation")
 	rootCmd.PersistentFlags().StringVar(&cfg.AllowedOrigins, "cors-origins", os.Getenv("ALLOWED_ORIGINS"), "Comma-separated allowed CORS origins (default: *)")

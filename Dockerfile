@@ -43,4 +43,4 @@ ENV PATH="/app:${PATH}" \
     TZ="UTC"
 
 ENTRYPOINT ["ledger-api"]
-CMD ["--help"]
+CMD ["serve"]
