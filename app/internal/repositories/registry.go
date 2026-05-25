@@ -1,8 +1,8 @@
 package repositories
 
 import (
-	"bank-transactions-ocr/app/internal/databases"
-	supabaserepo "bank-transactions-ocr/app/internal/repositories/supabase"
+	"ledger-api/app/internal/databases"
+	supabaserepo "ledger-api/app/internal/repositories/supabase"
 )
 
 type Registry struct {

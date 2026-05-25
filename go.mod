@@ -1,4 +1,4 @@
-module bank-transactions-ocr
+module ledger-api
 
 go 1.26.3
 

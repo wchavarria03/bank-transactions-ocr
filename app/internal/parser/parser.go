@@ -1,6 +1,6 @@
 package parser
 
-import "bank-transactions-ocr/app/internal/models"
+import "ledger-api/app/internal/models"
 
 // BankParser is implemented by each bank/format-specific parser.
 type BankParser interface {

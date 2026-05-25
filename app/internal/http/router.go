@@ -3,7 +3,7 @@ package httpserver
 import (
 	"github.com/gin-gonic/gin"
 
-	"bank-transactions-ocr/app/internal/handlers"
+	"ledger-api/app/internal/handlers"
 )
 
 // NewRouter creates a new Router with all routes configured.

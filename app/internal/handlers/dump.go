@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"bank-transactions-ocr/app/internal/pdf"
+	"ledger-api/app/internal/pdf"
 )
 
 func NewDumpHandler() *DumpHandler { return &DumpHandler{} }

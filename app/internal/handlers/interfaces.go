@@ -3,7 +3,7 @@ package handlers
 import (
 	"context"
 
-	"bank-transactions-ocr/app/internal/models"
+	"ledger-api/app/internal/models"
 )
 
 type Importer interface {

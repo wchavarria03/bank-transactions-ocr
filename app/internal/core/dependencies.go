@@ -3,11 +3,11 @@ package core
 import (
 	"fmt"
 
-	"bank-transactions-ocr/app/internal/databases"
-	"bank-transactions-ocr/app/internal/handlers"
-	httpserver "bank-transactions-ocr/app/internal/http"
-	"bank-transactions-ocr/app/internal/repositories"
-	"bank-transactions-ocr/app/internal/services"
+	"ledger-api/app/internal/databases"
+	"ledger-api/app/internal/handlers"
+	httpserver "ledger-api/app/internal/http"
+	"ledger-api/app/internal/repositories"
+	"ledger-api/app/internal/services"
 )
 
 type Config struct {

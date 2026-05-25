@@ -16,7 +16,7 @@ ARG VERSION=dev
 ARG BUILD_TIME=unknown
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -ldflags="-w -s -X main.version=${VERSION} -X main.buildTime=${BUILD_TIME}" \
-    -o bank-transactions-ocr .
+    -o ledger-api .
 
 # Final stage
 FROM alpine:3.21
@@ -31,16 +31,16 @@ RUN addgroup -g 10001 appgroup && \
 
 WORKDIR /app
 
-COPY --from=builder /app/bank-transactions-ocr .
+COPY --from=builder /app/ledger-api .
 
 RUN mkdir -p /app/data/input /app/data/output && \
     chown -R appuser:appgroup /app && \
-    chmod 755 /app/bank-transactions-ocr
+    chmod 755 /app/ledger-api
 
 USER appuser
 
 ENV PATH="/app:${PATH}" \
     TZ="UTC"
 
-ENTRYPOINT ["bank-transactions-ocr"]
+ENTRYPOINT ["ledger-api"]
 CMD ["--help"]

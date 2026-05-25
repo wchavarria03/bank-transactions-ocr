@@ -1,4 +1,4 @@
-BINARY   := bank-transactions-ocr
+BINARY   := ledger-api
 INPUT    := data/input
 OUTPUT   := data/output
 

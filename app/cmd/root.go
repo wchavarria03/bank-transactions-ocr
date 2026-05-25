@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"bank-transactions-ocr/app/internal/core"
+	"ledger-api/app/internal/core"
 	"github.com/spf13/cobra"
 )
 
@@ -24,8 +24,8 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "bank-transactions-ocr",
-	Short: "Extract and import bank transactions from PDFs",
+	Use:   "ledger-api",
+	Short: "Ingest bank statement PDFs, store transactions, and serve them via HTTP API",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		if _, err := os.Stat(cfg.InputDir); os.IsNotExist(err) {
 			return fmt.Errorf("input directory does not exist: %s", cfg.InputDir)

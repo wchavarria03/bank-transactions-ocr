@@ -1,17 +1,23 @@
 # Future Enhancements
 
-## Project Rename
+## Multi-bank support
 
-The current name `bank-transactions-ocr` is misleading. OCR (Optical Character Recognition) converts images of text into machine-readable text, which is not what this tool does. This project performs **native text extraction from digital PDFs** — a fundamentally different operation that reads text directly from the PDF's internal structure.
+Additional parsers beyond BAC (e.g. BCR, Scotiabank Costa Rica). Each bank gets its own
+directory under `app/internal/parser/parsers/` following the existing BAC pattern.
 
-A more accurate name would be something like `bank-statement-parser` or `pdf-transaction-extractor`.
+## Supabase auth middleware
 
-### Scope of the rename
+Forward the user's JWT from the `Authorization` header to PostgREST so Row Level Security
+policies enforce per-user data isolation. Required before the frontend can call the API
+directly on behalf of a logged-in user.
 
-The following would need to be updated:
+## Transfer reconciliation UI
 
-- Repository/folder name
-- `go.mod` — module declaration (`module bank-transactions-ocr`)
-- All internal import paths (`import "bank-transactions-ocr/internal/..."`)
-- Binary output name in `Dockerfile` and `docker-compose.yml`
-- `README.md` title and references
+Expose `TransferService` results through the API so the frontend can review and confirm
+auto-detected transfers between accounts.
+
+## BCCR exchange rate integration
+
+Fetch official Banco Central de Costa Rica rates for the transaction date when recording
+cross-currency transfers, populating `transfers.exchange_rate` and setting
+`exchange_source = 'bccr'`.

@@ -8,8 +8,8 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"bank-transactions-ocr/app/internal/models"
-	"bank-transactions-ocr/app/internal/parser"
+	"ledger-api/app/internal/models"
+	"ledger-api/app/internal/parser"
 )
 
 var ibanPattern = regexp.MustCompile(`^CR\d{20}$`)

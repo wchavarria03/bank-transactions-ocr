@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"bank-transactions-ocr/app/internal/models"
+	"ledger-api/app/internal/models"
 )
 
 func NewClassificationService(rules ClassificationRuleRepository) *ClassificationService {

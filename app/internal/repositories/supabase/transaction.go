@@ -5,8 +5,8 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"bank-transactions-ocr/app/internal/databases"
-	"bank-transactions-ocr/app/internal/models"
+	"ledger-api/app/internal/databases"
+	"ledger-api/app/internal/models"
 )
 
 // transactionRow is the DB shape for a transaction — includes account_id which is absent from models.Transaction.

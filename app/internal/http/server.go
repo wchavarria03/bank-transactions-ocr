@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"bank-transactions-ocr/app/internal/handlers"
+	"ledger-api/app/internal/handlers"
 )
 
 // NewServer creates an HTTP server bound to addr using routes from the handler registry.

@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/url"
 
-	"bank-transactions-ocr/app/internal/databases"
-	"bank-transactions-ocr/app/internal/models"
+	"ledger-api/app/internal/databases"
+	"ledger-api/app/internal/models"
 )
 
 func NewAccountRepository(client *databases.SupabaseClient) *AccountRepository {

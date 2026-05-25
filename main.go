@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bank-transactions-ocr/app/cmd"
+	"ledger-api/app/cmd"
 )
 
 func main() {

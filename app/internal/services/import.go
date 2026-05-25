@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"bank-transactions-ocr/app/internal/models"
+	"ledger-api/app/internal/models"
 )
 
 func NewImportService(

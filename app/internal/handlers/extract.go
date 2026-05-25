@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"bank-transactions-ocr/app/internal/parser"
-	_ "bank-transactions-ocr/app/internal/parser/parsers/bac"
-	"bank-transactions-ocr/app/internal/pdf"
+	"ledger-api/app/internal/parser"
+	_ "ledger-api/app/internal/parser/parsers/bac"
+	"ledger-api/app/internal/pdf"
 )
 
 func NewExtractHandler(importer Importer) *ExtractHandler {

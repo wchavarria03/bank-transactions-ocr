@@ -21,13 +21,13 @@ A command-line tool for extracting and processing transaction data from bank sta
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/bank-transactions-ocr.git
-   cd bank-transactions-ocr
+   git clone https://github.com/yourusername/ledger-api.git
+   cd ledger-api
    ```
 
 2. Build the project:
    ```bash
-   go build -o bank-transactions-ocr
+   go build -o ledger-api
    ```
 
 ## Usage
@@ -40,16 +40,16 @@ Extract transaction data from PDF bank statements in the input directory:
 
 ```bash
 # Basic usage with default directories
-./bank-transactions-ocr extract
+./ledger-api extract
 
 # With verbose output
-./bank-transactions-ocr -v extract
+./ledger-api -v extract
 
 # With custom input and output directories
-./bank-transactions-ocr -i /path/to/pdfs -o /path/to/output extract
+./ledger-api -i /path/to/pdfs -o /path/to/output extract
 
 # Full example with all options
-./bank-transactions-ocr -v -i /path/to/pdfs -o /path/to/output extract
+./ledger-api -v -i /path/to/pdfs -o /path/to/output extract
 ```
 
 ### Process All
@@ -57,7 +57,7 @@ Extract transaction data from PDF bank statements in the input directory:
 Run the complete workflow (extract transactions):
 
 ```bash
-./bank-transactions-ocr all
+./ledger-api all
 ```
 
 ### Global Flags
@@ -68,7 +68,7 @@ Run the complete workflow (extract transactions):
 
 Example with custom directories:
 ```bash
-./bank-transactions-ocr -i custom-input -o custom-output extract
+./ledger-api -i custom-input -o custom-output extract
 ```
 
 ## Project Structure

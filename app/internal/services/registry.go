@@ -1,6 +1,6 @@
 package services
 
-import "bank-transactions-ocr/app/internal/repositories"
+import "ledger-api/app/internal/repositories"
 
 type Registry struct {
 	Account        *AccountService

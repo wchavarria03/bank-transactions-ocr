@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"bank-transactions-ocr/app/internal/models"
+	"ledger-api/app/internal/models"
 )
 
 type AccountRepository interface {

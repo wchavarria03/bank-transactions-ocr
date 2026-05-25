@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"bank-transactions-ocr/app/internal/models"
+	"ledger-api/app/internal/models"
 )
 
 func WriteTransactions(path string, transactions []models.Transaction) error {

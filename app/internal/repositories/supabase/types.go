@@ -1,6 +1,6 @@
 package supabase
 
-import "bank-transactions-ocr/app/internal/databases"
+import "ledger-api/app/internal/databases"
 
 type AccountRepository struct {
 	client *databases.SupabaseClient

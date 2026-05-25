@@ -1,6 +1,6 @@
 package handlers
 
-import "bank-transactions-ocr/app/internal/services"
+import "ledger-api/app/internal/services"
 
 // Registry holds all HTTP handlers.
 type Registry struct {

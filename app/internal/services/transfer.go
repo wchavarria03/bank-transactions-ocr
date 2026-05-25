@@ -3,7 +3,7 @@ package services
 import (
 	"strings"
 
-	"bank-transactions-ocr/app/internal/models"
+	"ledger-api/app/internal/models"
 )
 
 func NewTransferService() *TransferService { return &TransferService{} }
