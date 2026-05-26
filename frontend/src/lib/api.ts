@@ -38,7 +38,7 @@ export async function createAccount(payload: { name: string; bank_name: string; 
   return res.json()
 }
 
-export async function updateAccount(id: string, fields: { name?: string; currency?: string }): Promise<Account> {
+export async function updateAccount(id: string, fields: { alias?: string; currency?: string }): Promise<Account> {
   const res = await authFetch(`/v1/accounts/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(fields),

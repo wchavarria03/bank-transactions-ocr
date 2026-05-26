@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Navbar } from '../components/Navbar'
 import { getAccounts, createAccount, updateAccount } from '../lib/api'
 import type { Account } from '../types'
+import { displayName } from '../types'
 
 const CURRENCIES = ['CRC', 'USD', 'EUR']
 
@@ -107,7 +108,7 @@ function AccountCard({ account, onEdit }: { account: Account; onEdit: () => void
       <Link to={`/accounts/${account.id}`} className="block">
         <div className="flex items-start justify-between">
           <div>
-            <p className="font-medium group-hover:text-white transition-colors">{account.name}</p>
+            <p className="font-medium group-hover:text-white transition-colors">{displayName(account)}</p>
             <p className="text-sm text-gray-400 mt-1 uppercase">{account.bank_name}</p>
           </div>
           <span className="text-xs font-mono bg-gray-800 text-gray-300 px-2 py-1 rounded">
@@ -131,7 +132,7 @@ function EditAccountModal({ account, onClose, onSaved }: {
   onClose: () => void
   onSaved: () => void
 }) {
-  const [name, setName] = useState(account.name)
+  const [alias, setAlias] = useState(account.alias ?? '')
   const [currency, setCurrency] = useState(account.currency)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -140,7 +141,7 @@ function EditAccountModal({ account, onClose, onSaved }: {
     setSaving(true)
     setError(null)
     try {
-      await updateAccount(account.id, { name, currency })
+      await updateAccount(account.id, { alias, currency })
       onSaved()
     } catch (err) {
       setError((err as Error).message)
@@ -152,12 +153,15 @@ function EditAccountModal({ account, onClose, onSaved }: {
   return (
     <Modal title="Edit Account" onClose={onClose}>
       <div className="space-y-4">
-        <Field label="Display name">
+        <Field label="Original name">
+          <input className="input" value={account.name} disabled />
+        </Field>
+        <Field label="Alias (display name)">
           <input
             className="input"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="e.g. BAC Savings"
+            value={alias}
+            onChange={e => setAlias(e.target.value)}
+            placeholder="e.g. BAC Savings — leave blank to use original"
           />
         </Field>
         <Field label="Currency">

@@ -8,6 +8,6 @@ type createAccountRequest struct {
 }
 
 type updateAccountRequest struct {
-	Name     string `json:"name"`
+	Alias    string `json:"alias"`
 	Currency string `json:"currency"`
 }

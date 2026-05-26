@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { Navbar } from '../components/Navbar'
 import { getAccount, getTransactions } from '../lib/api'
 import type { Account, Transaction } from '../types'
+import { displayName } from '../types'
 
 const CURRENCY_SYMBOL: Record<string, string> = {
   CRC: '₡',
@@ -64,7 +65,7 @@ export function Transactions() {
         {account && (
           <div className="bg-gray-900 border border-gray-800 rounded-xl px-6 py-4 flex items-center justify-between">
             <div>
-              <p className="font-semibold text-lg">{account.name}</p>
+              <p className="font-semibold text-lg">{displayName(account)}</p>
               <p className="text-sm text-gray-400 uppercase mt-0.5">{account.bank_name}</p>
             </div>
             <div className="text-right">
