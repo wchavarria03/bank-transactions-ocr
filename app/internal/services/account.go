@@ -18,3 +18,11 @@ func (s *AccountService) List(ctx context.Context) ([]*models.Account, error) {
 	}
 	return accounts, nil
 }
+
+func (s *AccountService) GetByID(ctx context.Context, id string) (*models.Account, error) {
+	account, err := s.accounts.FindByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("get account: %w", err)
+	}
+	return account, nil
+}

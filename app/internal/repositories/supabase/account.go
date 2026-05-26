@@ -18,6 +18,20 @@ func (r *AccountRepository) FindAll(ctx context.Context) ([]*models.Account, err
 	})
 }
 
+func (r *AccountRepository) FindByID(ctx context.Context, id string) (*models.Account, error) {
+	results, err := databases.Get[[]*models.Account](ctx, r.client, "/rest/v1/accounts", url.Values{
+		"id":    []string{"eq." + id},
+		"limit": []string{"1"},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(results) == 0 {
+		return nil, nil
+	}
+	return results[0], nil
+}
+
 func (r *AccountRepository) FindByAccountNumber(ctx context.Context, number string) (*models.Account, error) {
 	results, err := databases.Get[[]*models.Account](ctx, r.client, "/rest/v1/accounts", url.Values{
 		"account_number": []string{"eq." + number},

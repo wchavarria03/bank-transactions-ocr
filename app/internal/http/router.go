@@ -32,5 +32,6 @@ func setupRoutes(engine *gin.Engine, hdlrs *handlers.Registry, jwtSecret, jwksUR
 func setupAccountRoutes(rg *gin.RouterGroup, hdlrs *handlers.Registry) {
 	accounts := rg.Group("/accounts")
 	accounts.GET("", hdlrs.Account.List)
+	accounts.GET("/:id", hdlrs.Account.Get)
 	accounts.GET("/:id/transactions", hdlrs.Transaction.ListByAccount)
 }
