@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Navbar } from '../components/Navbar'
+import { ReportPanel } from '../components/reports/ReportPanel'
 import { getAccount, getCategories, getTransactions, setTransactionCategories } from '../lib/api'
 import type { Account, Category, Transaction } from '../types'
 import { displayName } from '../types'
@@ -81,6 +82,16 @@ export function Transactions() {
             </div>
           </div>
         )}
+
+        {/* Per-account report */}
+        {account && (
+          <div className="space-y-3">
+            <h2 className="text-xl font-semibold">Analytics</h2>
+            <ReportPanel accountId={account.id} currency={account.currency} />
+          </div>
+        )}
+
+        <h2 className="text-xl font-semibold">Transactions</h2>
 
         {loading && (
           <div className="flex justify-center py-12">

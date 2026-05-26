@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Navbar } from '../components/Navbar'
+import { ReportPanel } from '../components/reports/ReportPanel'
 import { getAccounts, createAccount, updateAccount } from '../lib/api'
 import type { Account } from '../types'
 import { displayName } from '../types'
@@ -13,6 +14,7 @@ export function Dashboard() {
   const [error, setError] = useState<string | null>(null)
   const [editingAccount, setEditingAccount] = useState<Account | null>(null)
   const [showCreate, setShowCreate] = useState(false)
+  const [selectedCurrency, setSelectedCurrency] = useState<string | null>(null)
 
   useEffect(() => {
     loadAccounts()
@@ -28,6 +30,7 @@ export function Dashboard() {
 
   const currencies = [...new Set(accounts.map(a => a.currency))]
   const banks = [...new Set(accounts.map(a => a.bank_name.toUpperCase()))]
+  const activeCurrency = selectedCurrency ?? currencies[0] ?? 'CRC'
 
   return (
     <div className="min-h-screen">
@@ -40,6 +43,33 @@ export function Dashboard() {
             <OverviewCard label="Accounts" value={String(accounts.length)} />
             <OverviewCard label="Currencies" value={currencies.join(' · ')} />
             <OverviewCard label="Banks" value={banks.join(' · ')} />
+          </div>
+        )}
+
+        {/* Report panel */}
+        {!loading && !error && accounts.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Overview</h2>
+              {currencies.length > 1 && (
+                <div className="flex items-center gap-2">
+                  {currencies.map(c => (
+                    <button
+                      key={c}
+                      onClick={() => setSelectedCurrency(c)}
+                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                        activeCurrency === c
+                          ? 'bg-gray-700 border-gray-500 text-white'
+                          : 'border-gray-700 text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <ReportPanel currency={activeCurrency} hideBalanceChart />
           </div>
         )}
 

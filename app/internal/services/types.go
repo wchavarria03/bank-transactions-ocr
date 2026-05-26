@@ -22,3 +22,8 @@ type CategoryService struct {
 type AccountService struct {
 	accounts AccountRepository
 }
+
+type ReportService struct {
+	repo       TransactionRepository
+	categories CategoryRepository
+}

@@ -27,6 +27,7 @@ func setupRoutes(engine *gin.Engine, hdlrs *handlers.Registry, jwtSecret, jwksUR
 	v1.GET("/me", hdlrs.Me.GetMe)
 	setupAccountRoutes(v1, hdlrs)
 	setupCategoryRoutes(v1, hdlrs)
+	setupReportRoutes(v1, hdlrs)
 }
 
 func setupAccountRoutes(rg *gin.RouterGroup, hdlrs *handlers.Registry) {
@@ -36,6 +37,11 @@ func setupAccountRoutes(rg *gin.RouterGroup, hdlrs *handlers.Registry) {
 	accounts.GET("/:id", hdlrs.Account.Get)
 	accounts.PATCH("/:id", hdlrs.Account.Update)
 	accounts.GET("/:id/transactions", hdlrs.Transaction.ListByAccount)
+}
+
+func setupReportRoutes(rg *gin.RouterGroup, hdlrs *handlers.Registry) {
+	reports := rg.Group("/reports")
+	reports.GET("/summary", hdlrs.Report.GetSummary)
 }
 
 func setupCategoryRoutes(rg *gin.RouterGroup, hdlrs *handlers.Registry) {

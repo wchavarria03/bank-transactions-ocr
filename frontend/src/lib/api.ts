@@ -1,4 +1,4 @@
-import { Account, Category, CategoryRule, Transaction } from '../types'
+import { Account, Category, CategoryRule, ReportSummary, Transaction } from '../types'
 import { supabase } from './supabase'
 
 const BASE_URL = import.meta.env.VITE_API_URL as string
@@ -91,6 +91,20 @@ export async function createCategoryRule(payload: { pattern: string; category_id
 export async function deleteCategoryRule(id: string): Promise<void> {
   const res = await authFetch(`/v1/category-rules/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error(`Failed to delete rule: ${res.status}`)
+}
+
+export async function getReportSummary(params: {
+  from: string
+  to: string
+  account_id?: string
+  currency?: string
+}): Promise<ReportSummary> {
+  const query = new URLSearchParams({ from: params.from, to: params.to })
+  if (params.account_id) query.set('account_id', params.account_id)
+  if (params.currency) query.set('currency', params.currency)
+  const res = await authFetch(`/v1/reports/summary?${query}`)
+  if (!res.ok) throw new Error(`Failed to fetch report: ${res.status}`)
+  return res.json()
 }
 
 export async function setTransactionCategories(transactionId: string, categoryIds: string[]): Promise<void> {

@@ -19,3 +19,8 @@ type TransactionHandler struct {
 type CategoryHandler struct {
 	svc CategoryManager
 }
+
+type ReportHandler struct {
+	accounts   AccountLister
+	summarizer ReportSummarizer
+}

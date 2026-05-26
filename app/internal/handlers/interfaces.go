@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"time"
 
 	"ledger-api/app/internal/models"
 )
@@ -19,6 +20,10 @@ type AccountLister interface {
 
 type TransactionLister interface {
 	ListByAccount(ctx context.Context, accountID string) ([]*models.Transaction, error)
+}
+
+type ReportSummarizer interface {
+	Summarize(ctx context.Context, accountIDs []string, from, to time.Time) (*models.ReportSummary, error)
 }
 
 type CategoryManager interface {

@@ -3,6 +3,7 @@ package supabase
 import (
 	"context"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -54,6 +55,41 @@ func (r *TransactionRepository) GetByAccountID(ctx context.Context, accountID st
 		"account_id": []string{"eq." + accountID},
 		"select":     []string{"*,transaction_categories(categories(id,name,color,parent_id))"},
 		"order":      []string{"date.desc"},
+	})
+	if err != nil {
+		return nil, err
+	}
+	txs := make([]*models.Transaction, len(rows))
+	for i, row := range rows {
+		date, _ := time.Parse("2006-01-02", row.Date)
+		cats := make([]*models.Category, 0, len(row.TransactionCategories))
+		for _, tc := range row.TransactionCategories {
+			if tc.Category != nil {
+				cats = append(cats, tc.Category)
+			}
+		}
+		txs[i] = &models.Transaction{
+			ID:          row.ID,
+			Date:        date,
+			Reference:   row.Reference,
+			Code:        row.Code,
+			Type:        models.TransactionType(row.Type),
+			Description: row.Description,
+			Amount:      row.Amount,
+			Balance:     row.Balance,
+			Currency:    row.Currency,
+			Categories:  cats,
+		}
+	}
+	return txs, nil
+}
+
+func (r *TransactionRepository) GetByAccountIDsInRange(ctx context.Context, accountIDs []string, from, to time.Time) ([]*models.Transaction, error) {
+	rows, err := databases.Get[[]*transactionRowFull](ctx, r.client, "/rest/v1/transactions", url.Values{
+		"account_id": []string{"in.(" + strings.Join(accountIDs, ",") + ")"},
+		"date":       []string{"gte." + from.Format("2006-01-02"), "lte." + to.Format("2006-01-02")},
+		"select":     []string{"*,transaction_categories(categories(id,name,color,parent_id))"},
+		"order":      []string{"date.asc"},
 	})
 	if err != nil {
 		return nil, err

@@ -9,6 +9,7 @@ type Registry struct {
 	Dump        *DumpHandler
 	Extract     *ExtractHandler
 	Me          *MeHandler
+	Report      *ReportHandler
 	Transaction *TransactionHandler
 }
 
@@ -19,6 +20,7 @@ func NewRegistry(svc *services.Registry) (*Registry, error) {
 		Dump:        NewDumpHandler(),
 		Extract:     NewExtractHandler(svc.Import),
 		Me:          NewMeHandler(),
+		Report:      NewReportHandler(svc.Account, svc.Report),
 		Transaction: NewTransactionHandler(svc.Transaction),
 	}, nil
 }
