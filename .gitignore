@@ -27,3 +27,6 @@ data/output/*
 
 # Built binary
 bank-transactions-ocr
+
+# Local Claude workspace (plans, lessons, memory — not for VCS)
+.claude/
