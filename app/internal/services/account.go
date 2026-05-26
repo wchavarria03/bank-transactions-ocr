@@ -26,3 +26,19 @@ func (s *AccountService) GetByID(ctx context.Context, id string) (*models.Accoun
 	}
 	return account, nil
 }
+
+func (s *AccountService) Create(ctx context.Context, a *models.Account) (*models.Account, error) {
+	account, err := s.accounts.Upsert(ctx, a)
+	if err != nil {
+		return nil, fmt.Errorf("create account: %w", err)
+	}
+	return account, nil
+}
+
+func (s *AccountService) Update(ctx context.Context, id string, fields map[string]string) (*models.Account, error) {
+	account, err := s.accounts.Update(ctx, id, fields)
+	if err != nil {
+		return nil, fmt.Errorf("update account: %w", err)
+	}
+	return account, nil
+}

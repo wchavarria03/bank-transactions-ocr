@@ -79,6 +79,25 @@ func Post[T any](ctx context.Context, c *SupabaseClient, path string, body any, 
 	return decode[T](c.HTTPClient.Do(req))
 }
 
+// Patch sends an authenticated PATCH to path with body marshaled as JSON and decodes the response into T.
+func Patch[T any](ctx context.Context, c *SupabaseClient, path string, body any, prefer string) (T, error) {
+	var zero T
+
+	data, err := json.Marshal(body)
+	if err != nil {
+		return zero, fmt.Errorf("marshal body: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, c.BaseURL+path, bytes.NewReader(data))
+	if err != nil {
+		return zero, fmt.Errorf("build request: %w", err)
+	}
+	apiKey, bearer := resolveKeys(ctx, c)
+	addHeaders(req, apiKey, bearer, prefer)
+
+	return decode[T](c.HTTPClient.Do(req))
+}
+
 // decode reads the HTTP response, checks for PostgREST errors, and unmarshals the body into T.
 // It is shared by Get and Post to avoid duplicating response-handling logic.
 func decode[T any](resp *http.Response, err error) (T, error) {

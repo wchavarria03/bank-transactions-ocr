@@ -46,6 +46,20 @@ func (r *AccountRepository) FindByAccountNumber(ctx context.Context, number stri
 	return results[0], nil
 }
 
+func (r *AccountRepository) Update(ctx context.Context, id string, fields map[string]string) (*models.Account, error) {
+	results, err := databases.Patch[[]*models.Account](ctx, r.client,
+		"/rest/v1/accounts?id=eq."+id,
+		fields,
+		"return=representation")
+	if err != nil {
+		return nil, err
+	}
+	if len(results) == 0 {
+		return nil, nil
+	}
+	return results[0], nil
+}
+
 func (r *AccountRepository) Upsert(ctx context.Context, a *models.Account) (*models.Account, error) {
 	results, err := databases.Post[[]*models.Account](ctx, r.client, "/rest/v1/accounts", a,
 		"resolution=merge-duplicates,return=representation")
