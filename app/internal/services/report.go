@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"math"
 	"sort"
 	"time"
 
@@ -13,6 +14,12 @@ func NewReportService(repo TransactionRepository, cats CategoryRepository) *Repo
 }
 
 func (s *ReportService) Summarize(ctx context.Context, accountIDs []string, from, to time.Time) (*models.ReportSummary, error) {
+	// Fetch carry-over balance from the last transaction before this period.
+	carryBalance, err := s.repo.GetLastBalanceBefore(ctx, accountIDs, from)
+	if err != nil {
+		return nil, err
+	}
+
 	txs, err := s.repo.GetByAccountIDsInRange(ctx, accountIDs, from, to)
 	if err != nil {
 		return nil, err
@@ -40,7 +47,7 @@ func (s *ReportService) Summarize(ctx context.Context, accountIDs []string, from
 	dailyBalance := map[string]float64{}
 	categoryTotals := map[string]*models.CategorySpend{}
 
-	var lastBalance float64
+	lastBalance := carryBalance
 
 	for _, tx := range txs { // sorted date asc by the repo query
 		day := tx.Date.Format("2006-01-02")
@@ -55,8 +62,9 @@ func (s *ReportService) Summarize(ctx context.Context, accountIDs []string, from
 			summary.TotalIncome += amount
 			dailyIncome[day] += amount
 		case models.TypeExpense, models.TypeFee:
-			summary.TotalExpenses += amount
-			dailyExpenses[day] += amount
+			absAmount := math.Abs(amount) // expenses are stored as negatives; normalise to positive
+			summary.TotalExpenses += absAmount
+			dailyExpenses[day] += absAmount
 			if root := resolveRootCategory(tx.Categories, catByID); root != nil {
 				if _, ok := categoryTotals[root.ID]; !ok {
 					categoryTotals[root.ID] = &models.CategorySpend{
@@ -65,7 +73,7 @@ func (s *ReportService) Summarize(ctx context.Context, accountIDs []string, from
 						Color:        root.Color,
 					}
 				}
-				categoryTotals[root.ID].Total += amount
+				categoryTotals[root.ID].Total += absAmount
 			}
 		case models.TypeTransferIn:
 			summary.Transfers.IncomingCount++
@@ -79,7 +87,7 @@ func (s *ReportService) Summarize(ctx context.Context, accountIDs []string, from
 	summary.TotalBalance = lastBalance
 	summary.PeriodChange = summary.TotalIncome - summary.TotalExpenses
 
-	var prevBalance float64
+	prevBalance := carryBalance
 	for d := from; !d.After(to); d = d.AddDate(0, 0, 1) {
 		day := d.Format("2006-01-02")
 		summary.DailyChanges = append(summary.DailyChanges, models.DailyChange{

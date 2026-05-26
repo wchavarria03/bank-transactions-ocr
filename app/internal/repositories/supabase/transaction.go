@@ -119,6 +119,27 @@ func (r *TransactionRepository) GetByAccountIDsInRange(ctx context.Context, acco
 	return txs, nil
 }
 
+// GetLastBalanceBefore returns the running balance of the most recent transaction
+// across the given accounts that occurred strictly before the given date.
+// Returns 0 if no prior transactions exist.
+func (r *TransactionRepository) GetLastBalanceBefore(ctx context.Context, accountIDs []string, before time.Time) (float64, error) {
+	rows, err := databases.Get[[]*transactionRowFull](ctx, r.client, "/rest/v1/transactions", url.Values{
+		"account_id": []string{"in.(" + strings.Join(accountIDs, ",") + ")"},
+		"date":       []string{"lt." + before.Format("2006-01-02")},
+		"select":     []string{"balance"},
+		"order":      []string{"date.desc"},
+		"limit":      []string{"1"},
+	})
+	if err != nil {
+		return 0, err
+	}
+	if len(rows) == 0 {
+		return 0, nil
+	}
+	bal, _ := rows[0].Balance.Float64()
+	return bal, nil
+}
+
 func (r *TransactionRepository) UpsertBatch(ctx context.Context, accountID string, sourceFile string, txs []models.Transaction) error {
 	rows := make([]transactionRow, len(txs))
 	for i, tx := range txs {

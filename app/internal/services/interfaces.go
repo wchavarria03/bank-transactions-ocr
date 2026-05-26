@@ -19,6 +19,7 @@ type TransactionRepository interface {
 	UpsertBatch(ctx context.Context, accountID string, sourceFile string, txs []models.Transaction) error
 	GetByAccountID(ctx context.Context, accountID string) ([]*models.Transaction, error)
 	GetByAccountIDsInRange(ctx context.Context, accountIDs []string, from, to time.Time) ([]*models.Transaction, error)
+	GetLastBalanceBefore(ctx context.Context, accountIDs []string, before time.Time) (float64, error)
 }
 
 type ClassificationRuleRepository interface {
