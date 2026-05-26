@@ -6,15 +6,21 @@ import (
 )
 
 type Registry struct {
-	Accounts        *supabaserepo.AccountRepository
-	Transactions    *supabaserepo.TransactionRepository
-	Classifications *supabaserepo.ClassificationRepository
+	Accounts             *supabaserepo.AccountRepository
+	Transactions         *supabaserepo.TransactionRepository
+	Classifications      *supabaserepo.ClassificationRepository
+	Categories           *supabaserepo.CategoryRepository
+	CategoryRules        *supabaserepo.CategoryRuleRepository
+	TransactionCategories *supabaserepo.TransactionCategoryRepository
 }
 
 func NewRegistry(dbs *databases.Registry) *Registry {
 	return &Registry{
-		Accounts:        supabaserepo.NewAccountRepository(dbs.Supabase),
-		Transactions:    supabaserepo.NewTransactionRepository(dbs.Supabase),
-		Classifications: supabaserepo.NewClassificationRepository(dbs.Supabase),
+		Accounts:             supabaserepo.NewAccountRepository(dbs.Supabase),
+		Transactions:         supabaserepo.NewTransactionRepository(dbs.Supabase),
+		Classifications:      supabaserepo.NewClassificationRepository(dbs.Supabase),
+		Categories:           supabaserepo.NewCategoryRepository(dbs.Supabase),
+		CategoryRules:        supabaserepo.NewCategoryRuleRepository(dbs.Supabase),
+		TransactionCategories: supabaserepo.NewTransactionCategoryRepository(dbs.Supabase),
 	}
 }

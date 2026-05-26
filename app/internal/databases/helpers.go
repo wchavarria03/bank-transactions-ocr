@@ -98,6 +98,18 @@ func Patch[T any](ctx context.Context, c *SupabaseClient, path string, body any,
 	return decode[T](c.HTTPClient.Do(req))
 }
 
+// Delete sends an authenticated DELETE to path and discards the response body.
+func Delete(ctx context.Context, c *SupabaseClient, path string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, c.BaseURL+path, nil)
+	if err != nil {
+		return fmt.Errorf("build request: %w", err)
+	}
+	apiKey, bearer := resolveKeys(ctx, c)
+	addHeaders(req, apiKey, bearer, "")
+	_, err = decode[struct{}](c.HTTPClient.Do(req))
+	return err
+}
+
 // decode reads the HTTP response, checks for PostgREST errors, and unmarshals the body into T.
 // It is shared by Get and Post to avoid duplicating response-handling logic.
 func decode[T any](resp *http.Response, err error) (T, error) {

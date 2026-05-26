@@ -22,3 +22,22 @@ type TransactionRepository interface {
 type ClassificationRuleRepository interface {
 	FindAll(ctx context.Context) ([]models.ClassificationRule, error)
 }
+
+type CategoryRepository interface {
+	FindAll(ctx context.Context) ([]*models.Category, error)
+	FindByID(ctx context.Context, id string) (*models.Category, error)
+	Create(ctx context.Context, c *models.Category) (*models.Category, error)
+	Update(ctx context.Context, id string, fields map[string]string) (*models.Category, error)
+	SoftDelete(ctx context.Context, id string) error
+}
+
+type CategoryRuleRepository interface {
+	FindAll(ctx context.Context) ([]*models.CategoryRule, error)
+	FindByAccountID(ctx context.Context, accountID string) ([]*models.CategoryRule, error)
+	Create(ctx context.Context, r *models.CategoryRule) (*models.CategoryRule, error)
+	Delete(ctx context.Context, id string) error
+}
+
+type TransactionCategoryRepository interface {
+	SetCategories(ctx context.Context, transactionID string, categoryIDs []string) error
+}

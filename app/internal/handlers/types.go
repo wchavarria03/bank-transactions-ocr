@@ -15,3 +15,7 @@ type MeHandler struct{}
 type TransactionHandler struct {
 	svc TransactionLister
 }
+
+type CategoryHandler struct {
+	svc CategoryManager
+}

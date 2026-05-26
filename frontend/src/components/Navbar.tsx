@@ -9,12 +9,17 @@ export function Navbar() {
       <Link to="/" className="text-xl font-semibold tracking-tight">
         Ledger
       </Link>
-      <button
-        onClick={() => signOut()}
-        className="text-sm text-gray-400 hover:text-white transition-colors"
-      >
-        Sign out
-      </button>
+      <div className="flex items-center gap-6">
+        <Link to="/settings" className="text-sm text-gray-400 hover:text-white transition-colors">
+          Settings
+        </Link>
+        <button
+          onClick={() => signOut()}
+          className="text-sm text-gray-400 hover:text-white transition-colors"
+        >
+          Sign out
+        </button>
+      </div>
     </nav>
   )
 }

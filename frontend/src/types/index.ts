@@ -13,6 +13,24 @@ export function displayName(account: Account): string {
   return account.alias?.trim() || account.name
 }
 
+export interface Category {
+  id: string
+  name: string
+  parent_id?: string
+  user_id?: string
+  color?: string
+  children?: Category[]
+}
+
+export interface CategoryRule {
+  id: string
+  user_id?: string
+  account_id?: string
+  pattern: string
+  category_id: string
+  priority: number
+}
+
 export interface Transaction {
   id: string
   date: string
@@ -23,4 +41,5 @@ export interface Transaction {
   amount: string
   balance: string
   currency: string
+  categories?: Category[]
 }

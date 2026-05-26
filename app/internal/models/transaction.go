@@ -27,6 +27,7 @@ type Transaction struct {
 	Amount      decimal.Decimal `json:"amount"`
 	Balance     decimal.Decimal `json:"balance"`
 	Currency    string          `json:"currency"`
+	Categories  []*Category     `json:"categories,omitempty"`
 }
 
 type Statement struct {

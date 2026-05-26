@@ -26,9 +26,9 @@ func setupRoutes(engine *gin.Engine, hdlrs *handlers.Registry, jwtSecret, jwksUR
 
 	v1.GET("/me", hdlrs.Me.GetMe)
 	setupAccountRoutes(v1, hdlrs)
+	setupCategoryRoutes(v1, hdlrs)
 }
 
-// setupAccountRoutes configures account-related routes.
 func setupAccountRoutes(rg *gin.RouterGroup, hdlrs *handlers.Registry) {
 	accounts := rg.Group("/accounts")
 	accounts.GET("", hdlrs.Account.List)
@@ -36,4 +36,20 @@ func setupAccountRoutes(rg *gin.RouterGroup, hdlrs *handlers.Registry) {
 	accounts.GET("/:id", hdlrs.Account.Get)
 	accounts.PATCH("/:id", hdlrs.Account.Update)
 	accounts.GET("/:id/transactions", hdlrs.Transaction.ListByAccount)
+}
+
+func setupCategoryRoutes(rg *gin.RouterGroup, hdlrs *handlers.Registry) {
+	cats := rg.Group("/categories")
+	cats.GET("", hdlrs.Category.List)
+	cats.POST("", hdlrs.Category.Create)
+	cats.PATCH("/:id", hdlrs.Category.Update)
+	cats.DELETE("/:id", hdlrs.Category.Delete)
+
+	rules := rg.Group("/category-rules")
+	rules.GET("", hdlrs.Category.ListRules)
+	rules.POST("", hdlrs.Category.CreateRule)
+	rules.DELETE("/:id", hdlrs.Category.DeleteRule)
+
+	txs := rg.Group("/transactions")
+	txs.PATCH("/:id/categories", hdlrs.Category.SetTransactionCategories)
 }

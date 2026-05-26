@@ -11,7 +11,7 @@ import (
 	"ledger-api/app/internal/models"
 )
 
-// transactionRow is the DB shape for a transaction — includes account_id which is absent from models.Transaction.
+// transactionRow is the write shape — used for UpsertBatch only.
 type transactionRow struct {
 	ID          string          `json:"id,omitempty"`
 	AccountID   string          `json:"account_id"`
@@ -26,13 +26,33 @@ type transactionRow struct {
 	SourceFile  string          `json:"source_file,omitempty"`
 }
 
+// transactionRowFull is the read shape — includes embedded category join.
+type transactionRowFull struct {
+	ID                    string             `json:"id,omitempty"`
+	AccountID             string             `json:"account_id"`
+	Date                  string             `json:"date"`
+	Reference             string             `json:"reference,omitempty"`
+	Code                  string             `json:"code,omitempty"`
+	Type                  string             `json:"type"`
+	Description           string             `json:"description"`
+	Amount                decimal.Decimal    `json:"amount"`
+	Balance               decimal.Decimal    `json:"balance"`
+	Currency              string             `json:"currency"`
+	TransactionCategories []txCategoryEmbed  `json:"transaction_categories"`
+}
+
+type txCategoryEmbed struct {
+	Category *models.Category `json:"categories"`
+}
+
 func NewTransactionRepository(client *databases.SupabaseClient) *TransactionRepository {
 	return &TransactionRepository{client: client}
 }
 
 func (r *TransactionRepository) GetByAccountID(ctx context.Context, accountID string) ([]*models.Transaction, error) {
-	rows, err := databases.Get[[]*transactionRow](ctx, r.client, "/rest/v1/transactions", url.Values{
+	rows, err := databases.Get[[]*transactionRowFull](ctx, r.client, "/rest/v1/transactions", url.Values{
 		"account_id": []string{"eq." + accountID},
+		"select":     []string{"*,transaction_categories(categories(id,name,color,parent_id))"},
 		"order":      []string{"date.desc"},
 	})
 	if err != nil {
@@ -41,6 +61,12 @@ func (r *TransactionRepository) GetByAccountID(ctx context.Context, accountID st
 	txs := make([]*models.Transaction, len(rows))
 	for i, row := range rows {
 		date, _ := time.Parse("2006-01-02", row.Date)
+		cats := make([]*models.Category, 0, len(row.TransactionCategories))
+		for _, tc := range row.TransactionCategories {
+			if tc.Category != nil {
+				cats = append(cats, tc.Category)
+			}
+		}
 		txs[i] = &models.Transaction{
 			ID:          row.ID,
 			Date:        date,
@@ -51,6 +77,7 @@ func (r *TransactionRepository) GetByAccountID(ctx context.Context, accountID st
 			Amount:      row.Amount,
 			Balance:     row.Balance,
 			Currency:    row.Currency,
+			Categories:  cats,
 		}
 	}
 	return txs, nil

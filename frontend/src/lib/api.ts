@@ -1,4 +1,4 @@
-import { Account, Transaction } from '../types'
+import { Account, Category, CategoryRule, Transaction } from '../types'
 import { supabase } from './supabase'
 
 const BASE_URL = import.meta.env.VITE_API_URL as string
@@ -51,4 +51,52 @@ export async function getTransactions(accountId: string): Promise<Transaction[]>
   const res = await authFetch(`/v1/accounts/${accountId}/transactions`)
   if (!res.ok) throw new Error(`Failed to fetch transactions: ${res.status}`)
   return res.json()
+}
+
+export async function getCategories(): Promise<Category[]> {
+  const res = await authFetch('/v1/categories')
+  if (!res.ok) throw new Error(`Failed to fetch categories: ${res.status}`)
+  return res.json()
+}
+
+export async function createCategory(payload: { name: string; parent_id?: string; color?: string }): Promise<Category> {
+  const res = await authFetch('/v1/categories', { method: 'POST', body: JSON.stringify(payload) })
+  if (!res.ok) throw new Error(`Failed to create category: ${res.status}`)
+  return res.json()
+}
+
+export async function updateCategory(id: string, fields: { name?: string; color?: string }): Promise<Category> {
+  const res = await authFetch(`/v1/categories/${id}`, { method: 'PATCH', body: JSON.stringify(fields) })
+  if (!res.ok) throw new Error(`Failed to update category: ${res.status}`)
+  return res.json()
+}
+
+export async function deleteCategory(id: string): Promise<void> {
+  const res = await authFetch(`/v1/categories/${id}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error(`Failed to delete category: ${res.status}`)
+}
+
+export async function getCategoryRules(): Promise<CategoryRule[]> {
+  const res = await authFetch('/v1/category-rules')
+  if (!res.ok) throw new Error(`Failed to fetch rules: ${res.status}`)
+  return res.json()
+}
+
+export async function createCategoryRule(payload: { pattern: string; category_id: string; account_id?: string; priority?: number }): Promise<CategoryRule> {
+  const res = await authFetch('/v1/category-rules', { method: 'POST', body: JSON.stringify(payload) })
+  if (!res.ok) throw new Error(`Failed to create rule: ${res.status}`)
+  return res.json()
+}
+
+export async function deleteCategoryRule(id: string): Promise<void> {
+  const res = await authFetch(`/v1/category-rules/${id}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error(`Failed to delete rule: ${res.status}`)
+}
+
+export async function setTransactionCategories(transactionId: string, categoryIds: string[]): Promise<void> {
+  const res = await authFetch(`/v1/transactions/${transactionId}/categories`, {
+    method: 'PATCH',
+    body: JSON.stringify({ category_ids: categoryIds }),
+  })
+  if (!res.ok) throw new Error(`Failed to update categories: ${res.status}`)
 }

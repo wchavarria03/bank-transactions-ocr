@@ -4,6 +4,7 @@ import "ledger-api/app/internal/repositories"
 
 type Registry struct {
 	Account        *AccountService
+	Category       *CategoryService
 	Classification *ClassificationService
 	Import         *ImportService
 	Transaction    *TransactionService
@@ -14,6 +15,7 @@ func NewRegistry(repos *repositories.Registry, userID string) *Registry {
 	classifier := NewClassificationService(repos.Classifications)
 	return &Registry{
 		Account:        NewAccountService(repos.Accounts),
+		Category:       NewCategoryService(repos.Categories, repos.CategoryRules, repos.TransactionCategories),
 		Classification: classifier,
 		Import:         NewImportService(repos.Accounts, repos.Transactions, classifier, userID),
 		Transaction:    NewTransactionService(repos.Transactions),
