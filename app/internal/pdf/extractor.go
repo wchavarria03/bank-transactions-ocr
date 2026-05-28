@@ -37,6 +37,25 @@ func ProcessPDFs(inputDir, outputDir string, verbose bool) error {
 	return nil
 }
 
+// ExtractTextFromBytes extracts all page text from in-memory PDF bytes.
+func ExtractTextFromBytes(data []byte) (string, error) {
+	reader, err := NewReaderFromBytes(data)
+	if err != nil {
+		return "", fmt.Errorf("failed to create PDF reader: %w", err)
+	}
+
+	var sb strings.Builder
+	for i := 1; i <= reader.GetNumPages(); i++ {
+		text, err := reader.ExtractTextFromPage(i)
+		if err != nil {
+			return "", fmt.Errorf("failed to extract text from page %d: %w", i, err)
+		}
+		sb.WriteString(text)
+		sb.WriteString("\n")
+	}
+	return sb.String(), nil
+}
+
 func ExtractText(inputPath, outputPath string, verbose bool) error {
 	reader, err := NewReader(inputPath)
 	if err != nil {

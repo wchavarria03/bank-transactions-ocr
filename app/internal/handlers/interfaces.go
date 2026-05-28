@@ -22,6 +22,10 @@ type TransactionLister interface {
 	ListByAccount(ctx context.Context, accountID string) ([]*models.Transaction, error)
 }
 
+type StatementImporter interface {
+	ImportWithSummary(ctx context.Context, stmt *models.Statement, bankName string) (*models.ImportSummary, error)
+}
+
 type ReportSummarizer interface {
 	Summarize(ctx context.Context, accountIDs []string, from, to time.Time) (*models.ReportSummary, error)
 }

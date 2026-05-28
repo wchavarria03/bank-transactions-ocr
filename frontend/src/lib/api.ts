@@ -1,4 +1,4 @@
-import { Account, Category, CategoryRule, ReportSummary, Transaction } from '../types'
+import { Account, Category, CategoryRule, ImportPreview, ImportSummary, ReportSummary, Transaction } from '../types'
 import { supabase } from './supabase'
 
 const BASE_URL = import.meta.env.VITE_API_URL as string
@@ -91,6 +91,40 @@ export async function createCategoryRule(payload: { pattern: string; category_id
 export async function deleteCategoryRule(id: string): Promise<void> {
   const res = await authFetch(`/v1/category-rules/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error(`Failed to delete rule: ${res.status}`)
+}
+
+export async function previewStatement(file: File): Promise<ImportPreview> {
+  const body = new FormData()
+  body.append('file', file)
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) throw new Error('Not authenticated')
+  const res = await fetch(`${BASE_URL}/v1/import?dry_run=true`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${session.access_token}` },
+    body,
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }))
+    throw new Error(err.error ?? 'Preview failed')
+  }
+  return res.json()
+}
+
+export async function importStatement(file: File): Promise<ImportSummary> {
+  const body = new FormData()
+  body.append('file', file)
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) throw new Error('Not authenticated')
+  const res = await fetch(`${BASE_URL}/v1/import`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${session.access_token}` },
+    body,
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }))
+    throw new Error(err.error ?? 'Import failed')
+  }
+  return res.json()
 }
 
 export async function getReportSummary(params: {

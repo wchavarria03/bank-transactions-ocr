@@ -31,6 +31,24 @@ export interface CategoryRule {
   priority: number
 }
 
+export interface ImportPreview {
+  account_number: string
+  bank: string
+  currency: string
+  transaction_count: number
+  period_start: string
+  period_end: string
+  sample: Transaction[]
+}
+
+export interface ImportSummary {
+  account_name: string
+  account_number: string
+  currency: string
+  bank: string
+  imported_count: number
+}
+
 export interface DailyBalance {
   date: string
   balance: number

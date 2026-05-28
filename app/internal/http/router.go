@@ -28,6 +28,7 @@ func setupRoutes(engine *gin.Engine, hdlrs *handlers.Registry, jwtSecret, jwksUR
 	setupAccountRoutes(v1, hdlrs)
 	setupCategoryRoutes(v1, hdlrs)
 	setupReportRoutes(v1, hdlrs)
+	v1.POST("/import", hdlrs.Upload.Import)
 }
 
 func setupAccountRoutes(rg *gin.RouterGroup, hdlrs *handlers.Registry) {

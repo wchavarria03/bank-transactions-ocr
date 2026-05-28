@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"ledger-api/app/internal/auth"
 	"ledger-api/app/internal/models"
 )
 
@@ -23,15 +24,43 @@ func NewImportService(
 }
 
 func (s *ImportService) Import(ctx context.Context, stmt *models.Statement, bankName string) error {
-	// bank is the prefix before "/" in the parser name (e.g. "bac/total-account" → "bac")
+	_, err := s.doImport(ctx, stmt, bankName)
+	return err
+}
+
+func (s *ImportService) ImportWithSummary(ctx context.Context, stmt *models.Statement, bankName string) (*models.ImportSummary, error) {
+	acc, err := s.doImport(ctx, stmt, bankName)
+	if err != nil {
+		return nil, err
+	}
+	bank := bankName
+	if idx := strings.Index(bankName, "/"); idx != -1 {
+		bank = bankName[:idx]
+	}
+	return &models.ImportSummary{
+		AccountName:   acc.Name,
+		AccountNumber: stmt.AccountNumber,
+		Currency:      acc.Currency,
+		Bank:          bank,
+		ImportedCount: len(stmt.Transactions),
+	}, nil
+}
+
+func (s *ImportService) doImport(ctx context.Context, stmt *models.Statement, bankName string) (*models.Account, error) {
 	bank := bankName
 	if idx := strings.Index(bankName, "/"); idx != -1 {
 		bank = bankName[:idx]
 	}
 
+	// Prefer the user ID from the JWT context; fall back to the static value for CLI use.
+	userID := auth.UserIDFromContext(ctx)
+	if userID == "" {
+		userID = s.userID
+	}
+
 	acc, err := s.accounts.FindByAccountNumber(ctx, stmt.AccountNumber)
 	if err != nil {
-		return fmt.Errorf("lookup account: %w", err)
+		return nil, fmt.Errorf("lookup account: %w", err)
 	}
 
 	if acc == nil {
@@ -51,21 +80,21 @@ func (s *ImportService) Import(ctx context.Context, stmt *models.Statement, bank
 			BankName:      bank,
 			Name:          name,
 			Currency:      currency,
-			UserID:        s.userID,
+			UserID:        userID,
 		})
 		if err != nil {
-			return fmt.Errorf("upsert account: %w", err)
+			return nil, fmt.Errorf("upsert account: %w", err)
 		}
 	}
 
 	txs, err := s.classifier.Apply(ctx, bank, stmt.Transactions)
 	if err != nil {
-		return fmt.Errorf("classify transactions: %w", err)
+		return nil, fmt.Errorf("classify transactions: %w", err)
 	}
 
 	if err := s.transactions.UpsertBatch(ctx, acc.ID, stmt.SourceFile, txs); err != nil {
-		return fmt.Errorf("upsert transactions: %w", err)
+		return nil, fmt.Errorf("upsert transactions: %w", err)
 	}
 
-	return nil
+	return acc, nil
 }

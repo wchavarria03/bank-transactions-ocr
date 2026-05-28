@@ -24,3 +24,7 @@ type ReportHandler struct {
 	accounts   AccountLister
 	summarizer ReportSummarizer
 }
+
+type UploadHandler struct {
+	importer StatementImporter
+}

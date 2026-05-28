@@ -1,6 +1,7 @@
 package pdf
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 
@@ -40,6 +41,16 @@ func NewReader(pdfPath string) (*Reader, error) {
 		reader:  reader,
 		file:    f,
 	}, nil
+}
+
+// NewReaderFromBytes creates a Reader from in-memory PDF bytes, with no disk I/O.
+func NewReaderFromBytes(data []byte) (*Reader, error) {
+	r := bytes.NewReader(data)
+	reader, err := pdf.NewReader(r, int64(len(data)))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create PDF reader: %w", err)
+	}
+	return &Reader{reader: reader}, nil
 }
 
 func (r *Reader) GetNumPages() int {

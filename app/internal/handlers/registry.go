@@ -11,6 +11,7 @@ type Registry struct {
 	Me          *MeHandler
 	Report      *ReportHandler
 	Transaction *TransactionHandler
+	Upload      *UploadHandler
 }
 
 func NewRegistry(svc *services.Registry) (*Registry, error) {
@@ -22,6 +23,7 @@ func NewRegistry(svc *services.Registry) (*Registry, error) {
 		Me:          NewMeHandler(),
 		Report:      NewReportHandler(svc.Account, svc.Report),
 		Transaction: NewTransactionHandler(svc.Transaction),
+		Upload:      NewUploadHandler(svc.Import),
 	}, nil
 }
 
