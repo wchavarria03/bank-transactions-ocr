@@ -6,21 +6,23 @@ import (
 )
 
 type Registry struct {
-	Accounts             *supabaserepo.AccountRepository
-	Transactions         *supabaserepo.TransactionRepository
-	Classifications      *supabaserepo.ClassificationRepository
-	Categories           *supabaserepo.CategoryRepository
-	CategoryRules        *supabaserepo.CategoryRuleRepository
+	Accounts              *supabaserepo.AccountRepository
+	Transactions          *supabaserepo.TransactionRepository
+	Classifications       *supabaserepo.ClassificationRepository
+	Categories            *supabaserepo.CategoryRepository
+	CategoryRules         *supabaserepo.CategoryRuleRepository
 	TransactionCategories *supabaserepo.TransactionCategoryRepository
+	RuleExceptions        *supabaserepo.AccountRuleExceptionRepository
 }
 
 func NewRegistry(dbs *databases.Registry) *Registry {
 	return &Registry{
-		Accounts:             supabaserepo.NewAccountRepository(dbs.Supabase),
-		Transactions:         supabaserepo.NewTransactionRepository(dbs.Supabase),
-		Classifications:      supabaserepo.NewClassificationRepository(dbs.Supabase),
-		Categories:           supabaserepo.NewCategoryRepository(dbs.Supabase),
-		CategoryRules:        supabaserepo.NewCategoryRuleRepository(dbs.Supabase),
+		Accounts:              supabaserepo.NewAccountRepository(dbs.Supabase),
+		Transactions:          supabaserepo.NewTransactionRepository(dbs.Supabase),
+		Classifications:       supabaserepo.NewClassificationRepository(dbs.Supabase),
+		Categories:            supabaserepo.NewCategoryRepository(dbs.Supabase),
+		CategoryRules:         supabaserepo.NewCategoryRuleRepository(dbs.Supabase),
 		TransactionCategories: supabaserepo.NewTransactionCategoryRepository(dbs.Supabase),
+		RuleExceptions:        supabaserepo.NewAccountRuleExceptionRepository(dbs.Supabase),
 	}
 }

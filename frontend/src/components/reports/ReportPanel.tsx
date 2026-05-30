@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getReportSummary } from '../../lib/api'
 import { ReportSummary } from '../../types'
-import { MonthSelector, currentMonth, monthBounds } from './MonthSelector'
+import { PeriodSelector, currentMonth, monthBounds } from './MonthSelector'
 import { SummaryCards } from './SummaryCards'
 import { BalanceChart } from './BalanceChart'
 import { DailyChangesChart } from './DailyChangesChart'
@@ -9,15 +9,18 @@ import { CategoryChart } from './CategoryChart'
 import { TransfersSummary } from './TransfersSummary'
 
 interface Props {
-  /** If provided, shows per-account data. Otherwise uses currency filter for overview. */
   accountId?: string
   currency: string
-  /** Hide the balance line chart (e.g. overview mode with multiple accounts) */
   hideBalanceChart?: boolean
 }
 
+function isRangePeriod(from: string, to: string) {
+  const diff = new Date(to).getTime() - new Date(from).getTime()
+  return diff > 35 * 86400 * 1000
+}
+
 export function ReportPanel({ accountId, currency, hideBalanceChart }: Props) {
-  const [month, setMonth] = useState(currentMonth)
+  const [period, setPeriod] = useState<{ from: string; to: string }>(() => monthBounds(currentMonth()))
   const [summary, setSummary] = useState<ReportSummary | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -25,17 +28,25 @@ export function ReportPanel({ accountId, currency, hideBalanceChart }: Props) {
   useEffect(() => {
     setLoading(true)
     setError(null)
-    const { from, to } = monthBounds(month)
-    getReportSummary(accountId ? { from, to, account_id: accountId } : { from, to, currency })
+    getReportSummary(
+      accountId
+        ? { from: period.from, to: period.to, account_id: accountId }
+        : { from: period.from, to: period.to, currency }
+    )
       .then(setSummary)
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
-  }, [month, accountId, currency])
+  }, [period.from, period.to, accountId, currency])
+
+  const isRange = isRangePeriod(period.from, period.to)
+  const showBalanceChart = !hideBalanceChart
+  const showDailyChart = !isRange
+  const hasSideCharts = showBalanceChart || showDailyChart
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <MonthSelector value={month} onChange={setMonth} />
+        <PeriodSelector onChange={(from, to) => setPeriod({ from, to })} />
       </div>
 
       {loading && (
@@ -50,12 +61,16 @@ export function ReportPanel({ accountId, currency, hideBalanceChart }: Props) {
         <>
           <SummaryCards summary={summary} currency={currency} />
 
-          <div className={`grid gap-4 ${hideBalanceChart ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
-            {!hideBalanceChart && (
-              <BalanceChart data={summary.balance_history} currency={currency} />
-            )}
-            <DailyChangesChart data={summary.daily_changes} currency={currency} />
-          </div>
+          {hasSideCharts && (
+            <div className={`grid gap-4 ${showBalanceChart && showDailyChart ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+              {showBalanceChart && (
+                <BalanceChart data={summary.balance_history} currency={currency} />
+              )}
+              {showDailyChart && (
+                <DailyChangesChart data={summary.daily_changes} currency={currency} />
+              )}
+            </div>
+          )}
 
           <CategoryChart data={summary.by_category} currency={currency} />
 

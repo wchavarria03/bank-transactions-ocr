@@ -1,10 +1,13 @@
 package services
 
 type ImportService struct {
-	accounts     AccountRepository
-	transactions TransactionRepository
-	classifier   *ClassificationService
-	userID       string
+	accounts       AccountRepository
+	transactions   TransactionRepository
+	classifier     *ClassificationService
+	categoryRules  CategoryRuleRepository
+	txCategories   TransactionCategoryRepository
+	ruleExceptions AccountRuleExceptionRepository
+	userID         string
 }
 
 type ClassificationService struct {

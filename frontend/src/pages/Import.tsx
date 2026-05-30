@@ -126,6 +126,17 @@ function PreviewCard({ preview, onConfirm, onCancel }: {
         <Stat label="To" value={fmtDate(preview.period_end)} />
       </div>
 
+      {preview.existing_count > 0 && (
+        <div className="bg-amber-900/20 border border-amber-700 rounded-xl p-4 flex gap-3">
+          <span className="text-amber-400 text-base flex-shrink-0 mt-0.5">⚠</span>
+          <p className="text-sm text-amber-300">
+            This account already has <strong>{preview.existing_count} transaction{preview.existing_count !== 1 ? 's' : ''}</strong> recorded
+            between {fmtDate(preview.period_start)} and {fmtDate(preview.period_end)}.
+            Confirm only if this is a continuation or correction of a previous import.
+          </p>
+        </div>
+      )}
+
       {preview.sample.length > 0 && (
         <div>
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Sample ({preview.sample.length} of {preview.transaction_count})</p>

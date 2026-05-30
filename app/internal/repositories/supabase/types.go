@@ -25,3 +25,7 @@ type CategoryRuleRepository struct {
 type TransactionCategoryRepository struct {
 	client *databases.SupabaseClient
 }
+
+type AccountRuleExceptionRepository struct {
+	client *databases.SupabaseClient
+}

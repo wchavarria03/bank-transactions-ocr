@@ -17,3 +17,7 @@ func NewTransactionService(repo TransactionRepository) *TransactionService {
 func (s *TransactionService) ListByAccount(ctx context.Context, accountID string) ([]*models.Transaction, error) {
 	return s.repo.GetByAccountID(ctx, accountID)
 }
+
+func (s *TransactionService) ListFiltered(ctx context.Context, accountID string, filter models.TxFilter) ([]*models.Transaction, int, error) {
+	return s.repo.ListFiltered(ctx, accountID, filter)
+}

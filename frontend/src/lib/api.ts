@@ -1,4 +1,25 @@
-import { Account, Category, CategoryRule, ImportPreview, ImportSummary, ReportSummary, Transaction } from '../types'
+import { Account, Category, CategoryRule, ImportPreview, ImportSummary, ReportSummary, TxFilters, TxPage } from '../types'
+
+export async function getRuleExceptions(accountId: string): Promise<string[]> {
+  const res = await authFetch(`/v1/accounts/${accountId}/rule-exceptions`)
+  if (!res.ok) throw new Error(`Failed to fetch rule exceptions: ${res.status}`)
+  return res.json()
+}
+
+export async function disableRule(accountId: string, ruleId: string): Promise<void> {
+  const res = await authFetch(`/v1/accounts/${accountId}/rule-exceptions`, {
+    method: 'POST',
+    body: JSON.stringify({ rule_id: ruleId }),
+  })
+  if (!res.ok) throw new Error(`Failed to disable rule: ${res.status}`)
+}
+
+export async function enableRule(accountId: string, ruleId: string): Promise<void> {
+  const res = await authFetch(`/v1/accounts/${accountId}/rule-exceptions/${ruleId}`, {
+    method: 'DELETE',
+  })
+  if (!res.ok) throw new Error(`Failed to enable rule: ${res.status}`)
+}
 import { supabase } from './supabase'
 
 const BASE_URL = import.meta.env.VITE_API_URL as string
@@ -47,8 +68,16 @@ export async function updateAccount(id: string, fields: { alias?: string; curren
   return res.json()
 }
 
-export async function getTransactions(accountId: string): Promise<Transaction[]> {
-  const res = await authFetch(`/v1/accounts/${accountId}/transactions`)
+export async function getTransactions(accountId: string, filters: TxFilters = {}): Promise<TxPage> {
+  const query = new URLSearchParams()
+  if (filters.search) query.set('search', filters.search)
+  if (filters.type) query.set('type', filters.type)
+  if (filters.from) query.set('from', filters.from)
+  if (filters.to) query.set('to', filters.to)
+  if (filters.page) query.set('page', String(filters.page))
+  if (filters.limit) query.set('limit', String(filters.limit))
+  const qs = query.toString()
+  const res = await authFetch(`/v1/accounts/${accountId}/transactions${qs ? `?${qs}` : ''}`)
   if (!res.ok) throw new Error(`Failed to fetch transactions: ${res.status}`)
   return res.json()
 }

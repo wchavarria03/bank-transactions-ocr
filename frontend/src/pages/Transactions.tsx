@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { Navbar } from '../components/Navbar'
 import { ReportPanel } from '../components/reports/ReportPanel'
 import { getAccount, getCategories, getTransactions, setTransactionCategories } from '../lib/api'
-import type { Account, Category, Transaction } from '../types'
+import type { Account, Category, Transaction, TxFilters, TxPage } from '../types'
 import { displayName } from '../types'
 
 const CURRENCY_SYMBOL: Record<string, string> = {
@@ -21,6 +21,16 @@ const TYPE_STYLES: Record<string, string> = {
   interest: 'text-purple-400',
 }
 
+const TX_TYPES = [
+  { value: '', label: 'All types' },
+  { value: 'expense', label: 'Expense' },
+  { value: 'income', label: 'Income' },
+  { value: 'transfer_in', label: 'Transfer in' },
+  { value: 'transfer_out', label: 'Transfer out' },
+  { value: 'fee', label: 'Fee' },
+  { value: 'interest', label: 'Interest' },
+]
+
 function formatAmount(amount: string, currency: string): string {
   const symbol = CURRENCY_SYMBOL[currency] ?? currency
   const num = Number(amount)
@@ -28,32 +38,81 @@ function formatAmount(amount: string, currency: string): string {
   return num < 0 ? `-${symbol}${formatted}` : `${symbol}${formatted}`
 }
 
+function useDebounce<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay)
+    return () => clearTimeout(t)
+  }, [value, delay])
+  return debounced
+}
+
 export function Transactions() {
   const { id } = useParams<{ id: string }>()
   const [account, setAccount] = useState<Account | null>(null)
-  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [page, setPage] = useState<TxPage | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Filter state
+  const [search, setSearch] = useState('')
+  const [type, setType] = useState('')
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+
+  const debouncedSearch = useDebounce(search, 300)
+
+  // Load account + categories once
   useEffect(() => {
     if (!id) return
-    Promise.all([getAccount(id), getTransactions(id), getCategories()])
-      .then(([acc, txs, cats]) => {
+    Promise.all([getAccount(id), getCategories()])
+      .then(([acc, cats]) => {
         setAccount(acc)
-        setTransactions(txs)
         setCategories(cats)
       })
       .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false))
   }, [id])
 
+  // Reload transactions whenever filters or page change
+  useEffect(() => {
+    if (!id) return
+    setLoading(true)
+    setError(null)
+    const filters: TxFilters = { page: currentPage }
+    if (debouncedSearch) filters.search = debouncedSearch
+    if (type) filters.type = type
+    if (from) filters.from = from
+    if (to) filters.to = to
+    getTransactions(id, filters)
+      .then(setPage)
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [id, debouncedSearch, type, from, to, currentPage])
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [debouncedSearch, type, from, to])
+
   function handleCategoriesChanged(txId: string, newCats: Category[]) {
-    setTransactions(prev => prev.map(tx =>
-      tx.id === txId ? { ...tx, categories: newCats } : tx
-    ))
+    setPage(prev => prev ? {
+      ...prev,
+      transactions: prev.transactions.map(tx =>
+        tx.id === txId ? { ...tx, categories: newCats } : tx
+      ),
+    } : prev)
   }
 
+  function clearFilters() {
+    setSearch('')
+    setType('')
+    setFrom('')
+    setTo('')
+  }
+
+  const hasFilters = search || type || from || to
   const currency = account?.currency ?? ''
   const symbol = CURRENCY_SYMBOL[currency] ?? currency
 
@@ -83,7 +142,6 @@ export function Transactions() {
           </div>
         )}
 
-        {/* Per-account report */}
         {account && (
           <div className="space-y-3">
             <h2 className="text-xl font-semibold">Analytics</h2>
@@ -91,60 +149,138 @@ export function Transactions() {
           </div>
         )}
 
-        <h2 className="text-xl font-semibold">Transactions</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Transactions</h2>
+          {page && (
+            <p className="text-sm text-gray-400">
+              {page.total} total
+            </p>
+          )}
+        </div>
+
+        {/* Filter bar */}
+        <div className="flex flex-wrap gap-2 items-center">
+          <input
+            type="text"
+            placeholder="Search description…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 w-52"
+          />
+          <select
+            value={type}
+            onChange={e => setType(e.target.value)}
+            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gray-500"
+          >
+            {TX_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </select>
+          <input
+            type="date"
+            value={from}
+            onChange={e => setFrom(e.target.value)}
+            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gray-500"
+          />
+          <span className="text-gray-500 text-sm">–</span>
+          <input
+            type="date"
+            value={to}
+            onChange={e => setTo(e.target.value)}
+            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gray-500"
+          />
+          {hasFilters && (
+            <button
+              onClick={clearFilters}
+              className="text-xs text-gray-400 hover:text-white underline transition-colors"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
+        {error && (
+          <div className="bg-red-900/20 border border-red-800 rounded-xl p-4 text-red-400 text-sm">{error}</div>
+        )}
 
         {loading && (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500" />
           </div>
         )}
-        {error && (
-          <div className="bg-red-900/20 border border-red-800 rounded-xl p-4 text-red-400 text-sm">{error}</div>
-        )}
-        {!loading && !error && (
-          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-800 text-gray-400 text-xs uppercase">
-                  <th className="text-left px-4 py-3">Date</th>
-                  <th className="text-left px-4 py-3">Description</th>
-                  <th className="text-left px-4 py-3">Type</th>
-                  <th className="text-left px-4 py-3">Category</th>
-                  <th className="text-right px-4 py-3">Amount</th>
-                  <th className="text-right px-4 py-3">Balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.map(tx => (
-                  <tr key={tx.id} className="border-b border-gray-800/50 hover:bg-gray-800/30">
-                    <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
-                      {new Date(tx.date).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3">{tx.description}</td>
-                    <td className={`px-4 py-3 capitalize ${TYPE_STYLES[tx.type] ?? 'text-gray-300'}`}>
-                      {tx.type.replace('_', ' ')}
-                    </td>
-                    <td className="px-4 py-3">
-                      <CategoryCell
-                        transaction={tx}
-                        allCategories={categories}
-                        onChange={cats => handleCategoriesChanged(tx.id, cats)}
-                      />
-                    </td>
-                    <td className={`px-4 py-3 text-right font-mono ${Number(tx.amount) < 0 ? 'text-red-400' : 'text-green-400'}`}>
-                      {formatAmount(tx.amount, currency)}
-                    </td>
-                    <td className="px-4 py-3 text-right font-mono text-gray-300">
-                      {formatAmount(tx.balance, currency)}
-                    </td>
+
+        {!loading && !error && page && (
+          <>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-800 text-gray-400 text-xs uppercase">
+                    <th className="text-left px-4 py-3">Date</th>
+                    <th className="text-left px-4 py-3">Description</th>
+                    <th className="text-left px-4 py-3">Type</th>
+                    <th className="text-left px-4 py-3">Category</th>
+                    <th className="text-right px-4 py-3">Amount</th>
+                    <th className="text-right px-4 py-3">Balance</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {transactions.length === 0 && (
-              <p className="text-center text-gray-400 py-12">No transactions found</p>
+                </thead>
+                <tbody>
+                  {page.transactions.map(tx => (
+                    <tr key={tx.id} className="border-b border-gray-800/50 hover:bg-gray-800/30">
+                      <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
+                        {new Date(tx.date).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3">{tx.description}</td>
+                      <td className={`px-4 py-3 capitalize ${TYPE_STYLES[tx.type] ?? 'text-gray-300'}`}>
+                        {tx.type.replace('_', ' ')}
+                      </td>
+                      <td className="px-4 py-3">
+                        <CategoryCell
+                          transaction={tx}
+                          allCategories={categories}
+                          onChange={cats => handleCategoriesChanged(tx.id, cats)}
+                        />
+                      </td>
+                      <td className={`px-4 py-3 text-right font-mono ${Number(tx.amount) < 0 ? 'text-red-400' : 'text-green-400'}`}>
+                        {formatAmount(tx.amount, currency)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono text-gray-300">
+                        {formatAmount(tx.balance, currency)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {page.transactions.length === 0 && (
+                <p className="text-center text-gray-400 py-12">No transactions found</p>
+              )}
+            </div>
+
+            {/* Pagination */}
+            {page.total_pages > 1 && (
+              <div className="flex items-center justify-between text-sm">
+                <p className="text-gray-400">
+                  Showing {((page.page - 1) * page.limit) + 1}–{Math.min(page.page * page.limit, page.total)} of {page.total}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(p => p - 1)}
+                    disabled={page.page <= 1}
+                    className="px-3 py-1.5 rounded-lg border border-gray-700 text-gray-300 hover:text-white hover:border-gray-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    ← Prev
+                  </button>
+                  <span className="text-gray-400 px-2">
+                    Page {page.page} of {page.total_pages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(p => p + 1)}
+                    disabled={page.page >= page.total_pages}
+                    className="px-3 py-1.5 rounded-lg border border-gray-700 text-gray-300 hover:text-white hover:border-gray-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
             )}
-          </div>
+          </>
         )}
       </main>
     </div>
@@ -180,7 +316,6 @@ function CategoryCell({ transaction, allCategories, onChange }: {
     setSaving(true)
     try {
       await setTransactionCategories(transaction.id, [...next])
-      // Rebuild category objects from allCategories (flat)
       const flat = flattenCategories(allCategories)
       onChange(flat.filter(c => next.has(c.id)))
     } finally {

@@ -63,7 +63,11 @@ func (h *UploadHandler) Import(c *gin.Context) {
 	stmt.SourceFile = header.Filename
 
 	if c.Query("dry_run") == "true" {
-		c.JSON(http.StatusOK, buildPreview(stmt, p.Name()))
+		preview := buildPreview(stmt, p.Name())
+		if count, err := h.importer.CheckOverlap(c.Request.Context(), stmt); err == nil {
+			preview.ExistingCount = count
+		}
+		c.JSON(http.StatusOK, preview)
 		return
 	}
 

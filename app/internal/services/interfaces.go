@@ -18,6 +18,7 @@ type AccountRepository interface {
 type TransactionRepository interface {
 	UpsertBatch(ctx context.Context, accountID string, sourceFile string, txs []models.Transaction) error
 	GetByAccountID(ctx context.Context, accountID string) ([]*models.Transaction, error)
+	ListFiltered(ctx context.Context, accountID string, filter models.TxFilter) ([]*models.Transaction, int, error)
 	GetByAccountIDsInRange(ctx context.Context, accountIDs []string, from, to time.Time) ([]*models.Transaction, error)
 	GetLastBalanceBefore(ctx context.Context, accountIDs []string, before time.Time) (float64, error)
 }
@@ -43,4 +44,10 @@ type CategoryRuleRepository interface {
 
 type TransactionCategoryRepository interface {
 	SetCategories(ctx context.Context, transactionID string, categoryIDs []string) error
+}
+
+type AccountRuleExceptionRepository interface {
+	FindByAccount(ctx context.Context, accountID string) ([]string, error)
+	Create(ctx context.Context, accountID, ruleID string) error
+	Delete(ctx context.Context, accountID, ruleID string) error
 }

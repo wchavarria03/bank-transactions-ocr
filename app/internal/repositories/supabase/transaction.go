@@ -3,6 +3,7 @@ package supabase
 import (
 	"context"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -82,6 +83,100 @@ func (r *TransactionRepository) GetByAccountID(ctx context.Context, accountID st
 		}
 	}
 	return txs, nil
+}
+
+type countRow struct {
+	Count int `json:"count"`
+}
+
+func txBaseParams(accountID string, filter models.TxFilter) url.Values {
+	params := url.Values{
+		"account_id": []string{"eq." + accountID},
+	}
+	if filter.Search != "" {
+		params.Set("description", "ilike.*"+filter.Search+"*")
+	}
+	if filter.Type != "" {
+		params.Set("type", "eq."+filter.Type)
+	}
+	var dateFilters []string
+	if filter.From != "" {
+		dateFilters = append(dateFilters, "gte."+filter.From)
+	}
+	if filter.To != "" {
+		dateFilters = append(dateFilters, "lte."+filter.To)
+	}
+	if len(dateFilters) > 0 {
+		params["date"] = dateFilters
+	}
+	return params
+}
+
+func (r *TransactionRepository) ListFiltered(ctx context.Context, accountID string, filter models.TxFilter) ([]*models.Transaction, int, error) {
+	base := txBaseParams(accountID, filter)
+
+	// Count query
+	countParams := url.Values{}
+	for k, v := range base {
+		countParams[k] = v
+	}
+	countParams.Set("select", "count")
+	counts, err := databases.Get[[]*countRow](ctx, r.client, "/rest/v1/transactions", countParams)
+	if err != nil {
+		return nil, 0, err
+	}
+	total := 0
+	if len(counts) > 0 {
+		total = counts[0].Count
+	}
+
+	// Data query
+	page := filter.Page
+	if page < 1 {
+		page = 1
+	}
+	limit := filter.Limit
+	if limit <= 0 {
+		limit = 50
+	}
+	offset := (page - 1) * limit
+
+	dataParams := url.Values{}
+	for k, v := range base {
+		dataParams[k] = v
+	}
+	dataParams.Set("select", "*,transaction_categories(categories(id,name,color,parent_id))")
+	dataParams.Set("order", "date.desc")
+	dataParams.Set("limit", strconv.Itoa(limit))
+	dataParams.Set("offset", strconv.Itoa(offset))
+
+	rows, err := databases.Get[[]*transactionRowFull](ctx, r.client, "/rest/v1/transactions", dataParams)
+	if err != nil {
+		return nil, 0, err
+	}
+	txs := make([]*models.Transaction, len(rows))
+	for i, row := range rows {
+		date, _ := time.Parse("2006-01-02", row.Date)
+		cats := make([]*models.Category, 0, len(row.TransactionCategories))
+		for _, tc := range row.TransactionCategories {
+			if tc.Category != nil {
+				cats = append(cats, tc.Category)
+			}
+		}
+		txs[i] = &models.Transaction{
+			ID:          row.ID,
+			Date:        date,
+			Reference:   row.Reference,
+			Code:        row.Code,
+			Type:        models.TransactionType(row.Type),
+			Description: row.Description,
+			Amount:      row.Amount,
+			Balance:     row.Balance,
+			Currency:    row.Currency,
+			Categories:  cats,
+		}
+	}
+	return txs, total, nil
 }
 
 func (r *TransactionRepository) GetByAccountIDsInRange(ctx context.Context, accountIDs []string, from, to time.Time) ([]*models.Transaction, error) {

@@ -13,13 +13,19 @@ func NewImportService(
 	accounts AccountRepository,
 	transactions TransactionRepository,
 	classifier *ClassificationService,
+	categoryRules CategoryRuleRepository,
+	txCategories TransactionCategoryRepository,
+	ruleExceptions AccountRuleExceptionRepository,
 	userID string,
 ) *ImportService {
 	return &ImportService{
-		accounts:     accounts,
-		transactions: transactions,
-		classifier:   classifier,
-		userID:       userID,
+		accounts:       accounts,
+		transactions:   transactions,
+		classifier:     classifier,
+		categoryRules:  categoryRules,
+		txCategories:   txCategories,
+		ruleExceptions: ruleExceptions,
+		userID:         userID,
 	}
 }
 
@@ -44,6 +50,30 @@ func (s *ImportService) ImportWithSummary(ctx context.Context, stmt *models.Stat
 		Bank:          bank,
 		ImportedCount: len(stmt.Transactions),
 	}, nil
+}
+
+func (s *ImportService) CheckOverlap(ctx context.Context, stmt *models.Statement) (int, error) {
+	if len(stmt.Transactions) == 0 {
+		return 0, nil
+	}
+
+	acc, err := s.accounts.FindByAccountNumber(ctx, stmt.AccountNumber)
+	if err != nil {
+		return 0, fmt.Errorf("lookup account: %w", err)
+	}
+	if acc == nil {
+		return 0, nil
+	}
+
+	from := stmt.Transactions[0].Date
+	to := stmt.Transactions[len(stmt.Transactions)-1].Date
+
+	existing, err := s.transactions.GetByAccountIDsInRange(ctx, []string{acc.ID}, from, to)
+	if err != nil {
+		return 0, fmt.Errorf("check existing: %w", err)
+	}
+
+	return len(existing), nil
 }
 
 func (s *ImportService) doImport(ctx context.Context, stmt *models.Statement, bankName string) (*models.Account, error) {
@@ -96,5 +126,81 @@ func (s *ImportService) doImport(ctx context.Context, stmt *models.Statement, ba
 		return nil, fmt.Errorf("upsert transactions: %w", err)
 	}
 
+	// Auto-categorize newly imported transactions using category rules.
+	// Errors here are non-fatal — the import already succeeded.
+	s.autoCategorize(ctx, acc.ID, stmt)
+
 	return acc, nil
+}
+
+// autoCategorize applies category rules to uncategorized transactions in the statement period.
+func (s *ImportService) autoCategorize(ctx context.Context, accountID string, stmt *models.Statement) {
+	if s.categoryRules == nil || s.txCategories == nil || len(stmt.Transactions) == 0 {
+		return
+	}
+
+	rules, err := s.categoryRules.FindByAccountID(ctx, accountID)
+	if err != nil {
+		return
+	}
+	if len(rules) == 0 {
+		return
+	}
+
+	// Build set of disabled global rule IDs for this account.
+	disabledIDs := map[string]bool{}
+	if s.ruleExceptions != nil {
+		if ids, err := s.ruleExceptions.FindByAccount(ctx, accountID); err == nil {
+			for _, id := range ids {
+				disabledIDs[id] = true
+			}
+		}
+	}
+
+	from := stmt.Transactions[0].Date
+	to := stmt.Transactions[len(stmt.Transactions)-1].Date
+	stored, err := s.transactions.GetByAccountIDsInRange(ctx, []string{accountID}, from, to)
+	if err != nil {
+		return
+	}
+
+	for _, tx := range stored {
+		if len(tx.Categories) > 0 {
+			continue // already categorized — don't overwrite manual work
+		}
+		catID := matchCategoryRule(tx, rules, disabledIDs)
+		if catID == "" {
+			continue
+		}
+		// ignore error — categorization is best-effort
+		_ = s.txCategories.SetCategories(ctx, tx.ID, []string{catID})
+	}
+}
+
+// matchCategoryRule returns the category_id of the best matching rule for tx.
+// Account-specific rules take priority over global rules at the same priority level.
+func matchCategoryRule(tx *models.Transaction, rules []*models.CategoryRule, disabledIDs map[string]bool) string {
+	desc := strings.ToUpper(tx.Description)
+	var best *models.CategoryRule
+	for _, r := range rules {
+		// Skip disabled global rules.
+		if r.AccountID == "" && disabledIDs[r.ID] {
+			continue
+		}
+		if !strings.Contains(desc, strings.ToUpper(r.Pattern)) {
+			continue
+		}
+		if best == nil {
+			best = r
+			continue
+		}
+		// Account-specific rule beats global rule at the same priority.
+		if r.Priority > best.Priority || (r.Priority == best.Priority && r.AccountID != "" && best.AccountID == "") {
+			best = r
+		}
+	}
+	if best == nil {
+		return ""
+	}
+	return best.CategoryID
 }

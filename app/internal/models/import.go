@@ -8,6 +8,7 @@ type ImportPreview struct {
 	PeriodStart      string        `json:"period_start"`
 	PeriodEnd        string        `json:"period_end"`
 	Sample           []Transaction `json:"sample"`
+	ExistingCount    int           `json:"existing_count"`
 }
 
 type ImportSummary struct {

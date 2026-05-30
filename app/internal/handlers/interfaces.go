@@ -19,15 +19,22 @@ type AccountLister interface {
 }
 
 type TransactionLister interface {
-	ListByAccount(ctx context.Context, accountID string) ([]*models.Transaction, error)
+	ListFiltered(ctx context.Context, accountID string, filter models.TxFilter) ([]*models.Transaction, int, error)
 }
 
 type StatementImporter interface {
 	ImportWithSummary(ctx context.Context, stmt *models.Statement, bankName string) (*models.ImportSummary, error)
+	CheckOverlap(ctx context.Context, stmt *models.Statement) (int, error)
 }
 
 type ReportSummarizer interface {
 	Summarize(ctx context.Context, accountIDs []string, from, to time.Time) (*models.ReportSummary, error)
+}
+
+type RuleExceptionManager interface {
+	FindByAccount(ctx context.Context, accountID string) ([]string, error)
+	Create(ctx context.Context, accountID, ruleID string) error
+	Delete(ctx context.Context, accountID, ruleID string) error
 }
 
 type CategoryManager interface {

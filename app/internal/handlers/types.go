@@ -28,3 +28,8 @@ type ReportHandler struct {
 type UploadHandler struct {
 	importer StatementImporter
 }
+
+type RuleExceptionHandler struct {
+	exceptions RuleExceptionManager
+	categories CategoryManager
+}

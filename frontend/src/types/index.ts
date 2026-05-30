@@ -39,6 +39,7 @@ export interface ImportPreview {
   period_start: string
   period_end: string
   sample: Transaction[]
+  existing_count: number
 }
 
 export interface ImportSummary {
@@ -85,6 +86,27 @@ export interface ReportSummary {
   transfers: TransferSummary
   period_start: string
   period_end: string
+}
+
+export interface AccountRuleException {
+  rule_id: string
+}
+
+export interface TxFilters {
+  search?: string
+  type?: string
+  from?: string
+  to?: string
+  page?: number
+  limit?: number
+}
+
+export interface TxPage {
+  transactions: Transaction[]
+  total: number
+  page: number
+  limit: number
+  total_pages: number
 }
 
 export interface Transaction {
